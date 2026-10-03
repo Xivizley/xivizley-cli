@@ -131,7 +131,7 @@ export function buildSuiteCompose(config: SuiteConfig) {
 
   if (config.enableCaddy) {
     const caddyPorts = isIp
-      ? ['80:80', '8080:8080', '8081:8081', '3001:3001', '9000:9000']
+      ? ['8080:8080', '8081:8081', '3001:3001', '9000:9000']
       : ['80:80', '443:443'];
 
     services['caddy'] = {
