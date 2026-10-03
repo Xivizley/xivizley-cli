@@ -138,6 +138,33 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     assert(ipSuite.caddyfile.includes(':8080'), 'Caddyfile IP modunda :8080 port proxy yapılandırmalı');
   });
 
+  test('XIVIZLEY Nextcloud Unified Hub Compose ve Veritabanı Şeması Üretimi', () => {
+    const hubSuite = buildSuiteCompose({
+      suiteType: 'unified_hub',
+      domainOrIp: '109.104.120.126',
+      adminEmail: 'alperen@xivizley.com.tr',
+      enableGameCockpit: true,
+      enableCaddy: false,
+      targetDir: '/tmp/test-unified-hub',
+    });
+
+    assert(hubSuite.yamlContent.length > 0, 'Unified Hub YAML üretilmeli');
+    assert(hubSuite.envContent.includes('POSTGRES_PASSWORD='), '.env şifre içermeli');
+    assert(hubSuite.envContent.includes('COOKIE_SECRET='), '.env cookie secret içermeli');
+    assert(hubSuite.envContent.includes('VAULT_MASTER_KEY='), '.env vault master key içermeli');
+    assert((hubSuite as any).sqlInitContent.includes('CREATE SCHEMA IF NOT EXISTS sso;'), 'SQL init sso şemasını içermeli');
+    assert((hubSuite as any).sqlInitContent.includes('CREATE TABLE IF NOT EXISTS sso.users'), 'SQL init sso.users tablosunu içermeli');
+    assert((hubSuite as any).sqlInitContent.includes('CREATE TABLE IF NOT EXISTS pass.vault_items'), 'SQL init pass tablosunu içermeli');
+    assert((hubSuite as any).sqlInitContent.includes('CREATE TABLE IF NOT EXISTS drive.files'), 'SQL init drive tablosunu içermeli');
+
+    const parsed = load(hubSuite.yamlContent) as any;
+    assert(parsed.services.postgres, 'Unified Hub postgres içermeli');
+    assert(parsed.services.hub, 'Unified Hub xivizley-hub içermeli');
+    assert(parsed.services['fivem-server'], 'Unified Hub FiveM oyun sunucusu içermeli');
+    assert.strictEqual(parsed.services.hub.image, 'deploy-hub:latest', 'Hub imajı deploy-hub:latest olmalı');
+    assert(parsed.services.hub.ports.includes('3000:3000'), 'Hub port 3000 açılmalı');
+  });
+
   test('VDS Sistem Teşhis Fonksiyonu ve Port Emniyeti', async () => {
     const health = getSystemHealth();
     assert(health.platform, 'Platform bilgisi alınmalı');
