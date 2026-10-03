@@ -1,0 +1,40 @@
+{
+  "name": "xivizley",
+  "version": "1.0.0",
+  "description": "XIVIZLEY Industrial Server & Cloud Ecosystem Interactive CLI Engine",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "xivizley": "./bin/xivizley.mjs"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "node ./bin/xivizley.mjs",
+    "test": "npm run build && node --test tests/cli.test.ts"
+  },
+  "keywords": [
+    "xivizley",
+    "homelab",
+    "docker",
+    "docker-compose",
+    "vds",
+    "cloud",
+    "self-hosted",
+    "server",
+    "tui"
+  ],
+  "author": "Alperen Celal <alperencelal16@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^1.8.1",
+    "commander": "^15.0.0",
+    "js-yaml": "^5.4.2",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2"
+  }
+}
