@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
@@ -160,9 +162,23 @@ export function createCli(): Command {
   return program;
 }
 
-// Only auto-run if directly invoked as main module
-const isMain = process.argv[1]?.endsWith('bin/xivizley.mjs') || process.argv[1]?.endsWith('dist/index.js');
-if (isMain) {
+export async function run(argv: string[] = process.argv): Promise<void> {
   const cli = createCli();
-  cli.parse(process.argv);
+  await cli.parseAsync(argv);
+}
+
+// Only auto-run if directly invoked via node dist/index.js
+let isDirectRun = false;
+try {
+  if (process.argv[1]) {
+    const realArgv1 = fs.realpathSync(process.argv[1]);
+    const selfPath = fileURLToPath(import.meta.url);
+    isDirectRun = realArgv1 === selfPath;
+  }
+} catch {
+  isDirectRun = false;
+}
+
+if (isDirectRun) {
+  run(process.argv);
 }

@@ -11,9 +11,10 @@ const distEntry = path.resolve(__dirname, '../dist/index.js');
 const srcEntry = path.resolve(__dirname, '../src/index.ts');
 
 if (fs.existsSync(distEntry)) {
-  await import(distEntry);
-} else if (fs.existsSync(srcEntry)) {
-  await import(srcEntry);
+  const mod = await import(distEntry);
+  if (typeof mod.run === 'function') {
+    await mod.run(process.argv);
+  }
 } else {
   console.error('❌ Error: Entrypoint not found. Please run "npm run build" first.');
   process.exit(1);

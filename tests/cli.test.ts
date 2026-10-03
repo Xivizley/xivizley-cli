@@ -8,11 +8,12 @@ import { load } from 'js-yaml';
 
 import { MODULE_CATALOG } from '../dist/data/modules.js';
 import { STACK_TEMPLATES } from '../dist/data/templates.js';
-import { getAllModules, getModule, searchModules, getModulesByCategory } from '../dist/apps/catalog.js';
+import { getAllModules, getModule, searchModules, getModulesByCategory, getCategories } from '../dist/apps/catalog.js';
 import { getAllTemplates, getTemplate } from '../dist/templates/catalog.js';
 import { buildComposeFromModules, resolvePortConflicts } from '../dist/utils/compose.js';
-import { buildSuiteCompose } from '../dist/ecosystem/suite.js';
-import { getSystemHealth } from '../dist/utils/system.js';
+import { buildSuiteCompose, isIpAddress } from '../dist/ecosystem/suite.js';
+import { getSystemHealth, isPortInUse } from '../dist/utils/system.js';
+import fs from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -104,8 +105,11 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     });
 
     assert(suite.yamlContent.length > 0, 'Suite YAML üretilmeli');
-    assert(suite.caddyfile.includes('cloud.test.lan'), 'Caddyfile alan adını içermeli');
+    assert(suite.caddyfile.includes('cloud.cloud.test.lan'), 'Caddyfile alan adı subdomain içermeli');
     assert(suite.envContent.includes('POSTGRES_PASSWORD='), '.env şifre içermeli');
+    assert(suite.envContent.includes('NEXTCLOUD_ADMIN_USER=admin'), '.env Nextcloud kullanıcı adı içermeli');
+    assert(suite.envContent.includes('NEXTCLOUD_ADMIN_PASSWORD='), '.env Nextcloud admin şifresi içermeli');
+    assert(suite.credentials.nextcloudAdminPassword.length >= 16, 'Nextcloud şifresi en az 16 karakter olmalı');
     assert(suite.startScript.includes('docker compose up -d'), 'start.sh başlatma komutu içermeli');
 
     const parsed = load(suite.yamlContent) as any;
@@ -115,16 +119,39 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     assert(parsed.services.pulse_sentinel, 'Suite pulse_sentinel içermeli');
     assert(parsed.services.game_cockpit, 'Suite game_cockpit içermeli');
     assert(parsed.services.caddy, 'Suite caddy içermeli');
+
+    // Test IP Address mode for Caddyfile
+    const ipSuite = buildSuiteCompose({
+      domainOrIp: '192.168.1.100',
+      adminEmail: 'admin@test.lan',
+      enableNextcloud: true,
+      enableVaultwarden: true,
+      enablePulse: true,
+      enableGameCockpit: true,
+      enableCaddy: true,
+      targetDir: '/tmp/test-suite-ip',
+    });
+    assert(isIpAddress('192.168.1.100'), '192.168.1.100 bir IP adresi olarak tanımlanmalı');
+    assert(isIpAddress('localhost'), 'localhost bir IP/yerel adres olarak tanımlanmalı');
+    assert(!isIpAddress('mycloud.domain.com'), 'mycloud.domain.com domain olarak tanımlanmalı');
+    assert(!ipSuite.caddyfile.includes('cloud.192.168.1.100'), 'Caddyfile IP adresine geçersiz subdomain vermemeli');
+    assert(ipSuite.caddyfile.includes(':8080'), 'Caddyfile IP modunda :8080 port proxy yapılandırmalı');
   });
 
-  test('VDS Sistem Teşhis Fonksiyonu', () => {
+  test('VDS Sistem Teşhis Fonksiyonu ve Port Emniyeti', async () => {
     const health = getSystemHealth();
     assert(health.platform, 'Platform bilgisi alınmalı');
     assert(health.totalRamGB > 0, 'RAM bilgisi alınmalı');
     assert(health.cpuCores > 0, 'CPU çekirdek bilgisi alınmalı');
+
+    // Safe port check for edge values
+    const safeInvalidPort = await isPortInUse(-1);
+    assert.strictEqual(safeInvalidPort, false, 'Geçersiz negatif port güvenle false dönmeli');
+    const safeOverPort = await isPortInUse(999999);
+    assert.strictEqual(safeOverPort, false, 'Aralık dışı port güvenle false dönmeli');
   });
 
-  test('CLI Binary Komutları (--version & --help)', () => {
+  test('CLI Binary Komutları (--version & --help) ve Sembolik Bağlantı Testi', () => {
     const versionOutput = execSync(`node "${cliBin}" --version`).toString().trim();
     assert.strictEqual(versionOutput, '1.0.0', 'Sürüm 1.0.0 olmalı');
 
@@ -136,9 +163,19 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     assert(helpOutput.includes('backup'), 'backup komutu yardımda listelenmeli');
     assert(helpOutput.includes('templates'), 'templates komutu yardımda listelenmeli');
     assert(helpOutput.includes('sync'), 'sync komutu yardımda listelenmeli');
+
+    // Symlink / npx invocation test
+    const symlinkPath = path.resolve(__dirname, '../dist/symlink_test_bin');
+    try {
+      fs.symlinkSync(cliBin, symlinkPath);
+      const symlinkOutput = execSync(`"${symlinkPath}" --version`).toString().trim();
+      assert.strictEqual(symlinkOutput, '1.0.0', 'Sembolik bağlantı üzerinden çağrıldığında 1.0.0 döndürmeli');
+    } finally {
+      if (fs.existsSync(symlinkPath)) fs.unlinkSync(symlinkPath);
+    }
   });
 
-  test('Arama ve Filtreleme Motoru', () => {
+  test('Arama ve Filtreleme Motoru ve Kategori Kapsamı', () => {
     const jellyfinSearch = searchModules('jellyfin');
     assert(jellyfinSearch.some((m) => m.id === 'jellyfin'), 'Jellyfin araması Jellyfin getirmeli');
 
@@ -147,5 +184,11 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
 
     const aiTemplate = getTemplate('local-ai-ollama');
     assert(aiTemplate, 'Local AI Ollama şablonu bulunmalı');
+
+    // Verify all categories exist in getCategories (including proxy and tunnel)
+    const categories = getCategories();
+    assert(categories.some((c) => c.id === 'proxy'), 'Reverse Proxy kategorisi bulunmalı');
+    assert(categories.some((c) => c.id === 'tunnel'), 'Tünel kategorisi bulunmalı');
+    assert(categories.length >= 9, `En az 9 kategori olmalı, bulunan: ${categories.length}`);
   });
 });

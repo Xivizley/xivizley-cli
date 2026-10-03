@@ -72,7 +72,8 @@ echo "🗄️ [2/5] Veritabanı dökümleri alınıyor (varsa)..."
 if docker ps --format '{{.Names}}' | grep -q 'postgres'; then
   PG_CONTAINER=$(docker ps --format '{{.Names}}' | grep 'postgres' | head -n 1)
   echo "   -> Postgres (\${PG_CONTAINER}) yedekleniyor..."
-  docker exec "\${PG_CONTAINER}" pg_dumpall -U xivizley > "\${TEMP_DIR}/postgres_dump.sql" 2>/dev/null || true
+  docker exec "\${PG_CONTAINER}" pg_dumpall -U xivizley > "\${TEMP_DIR}/postgres_dump.sql" 2>/dev/null || \
+  docker exec "\${PG_CONTAINER}" pg_dumpall -U postgres > "\${TEMP_DIR}/postgres_dump.sql" 2>/dev/null || true
 fi
 
 # MySQL / MariaDB dump
@@ -117,8 +118,12 @@ fi
 
 ARCHIVE_PATH="$1"
 if [ ! -f "\${ARCHIVE_PATH}" ]; then
-  echo "❌ Hata: Belirtilen yedek dosyası bulunamadı: \${ARCHIVE_PATH}"
-  exit 1
+  if [ -f "\${BACKUP_DIR}/\${ARCHIVE_PATH}" ]; then
+    ARCHIVE_PATH="\${BACKUP_DIR}/\${ARCHIVE_PATH}"
+  else
+    echo "❌ Hata: Belirtilen yedek dosyası bulunamadı: \${ARCHIVE_PATH}"
+    exit 1
+  fi
 fi
 
 TEMP_RESTORE_DIR="/tmp/xivizley_restore_\$(date +%s)"
@@ -151,7 +156,8 @@ if [ -f "\${TEMP_RESTORE_DIR}/postgres_dump.sql" ]; then
   PG_CONTAINER=$(docker ps --format '{{.Names}}' | grep 'postgres' | head -n 1 || true)
   if [ -n "\${PG_CONTAINER}" ]; then
     echo "🗄️ PostgreSQL veritabanı geri yükleniyor..."
-    docker exec -i "\${PG_CONTAINER}" psql -U xivizley < "\${TEMP_RESTORE_DIR}/postgres_dump.sql" 2>/dev/null || true
+    docker exec -i "\${PG_CONTAINER}" psql -U xivizley < "\${TEMP_RESTORE_DIR}/postgres_dump.sql" 2>/dev/null || \
+    docker exec -i "\${PG_CONTAINER}" psql -U postgres < "\${TEMP_RESTORE_DIR}/postgres_dump.sql" 2>/dev/null || true
   fi
 fi
 

@@ -18,6 +18,13 @@ export interface SuiteConfig {
   targetDir: string;
 }
 
+export function isIpAddress(host: string): boolean {
+  if (host === 'localhost' || host === '127.0.0.1') return true;
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (ipv4Regex.test(host)) return true;
+  return host.includes(':'); // IPv6
+}
+
 export function generateSecurePassword(length = 24): string {
   return crypto.randomBytes(length).toString('base64url').slice(0, length);
 }
@@ -25,7 +32,10 @@ export function generateSecurePassword(length = 24): string {
 export function buildSuiteCompose(config: SuiteConfig) {
   const postgresPassword = generateSecurePassword();
   const nextcloudSecret = generateSecurePassword();
+  const nextcloudAdminUser = 'admin';
+  const nextcloudAdminPassword = generateSecurePassword(16);
   const vaultwardenAdminToken = generateSecurePassword();
+  const isIp = isIpAddress(config.domainOrIp);
 
   const services: Record<string, any> = {
     postgres: {
@@ -68,8 +78,8 @@ export function buildSuiteCompose(config: SuiteConfig) {
         POSTGRES_USER: 'xivizley',
         POSTGRES_PASSWORD: postgresPassword,
         REDIS_HOST: 'redis',
-        NEXTCLOUD_ADMIN_USER: 'admin',
-        NEXTCLOUD_ADMIN_PASSWORD: generateSecurePassword(16),
+        NEXTCLOUD_ADMIN_USER: nextcloudAdminUser,
+        NEXTCLOUD_ADMIN_PASSWORD: nextcloudAdminPassword,
         NEXTCLOUD_TRUSTED_DOMAINS: `${config.domainOrIp} localhost 127.0.0.1`,
       },
       volumes: ['./data/nextcloud:/var/www/html'],
@@ -120,11 +130,15 @@ export function buildSuiteCompose(config: SuiteConfig) {
   }
 
   if (config.enableCaddy) {
+    const caddyPorts = isIp
+      ? ['80:80', '8080:8080', '8081:8081', '3001:3001', '9000:9000']
+      : ['80:80', '443:443'];
+
     services['caddy'] = {
       image: 'caddy:alpine',
       container_name: 'xivizley_suite_caddy',
       restart: 'unless-stopped',
-      ports: ['80:80', '443:443'],
+      ports: caddyPorts,
       volumes: [
         './Caddyfile:/etc/caddy/Caddyfile',
         './data/caddy_data:/data',
@@ -148,7 +162,7 @@ export function buildSuiteCompose(config: SuiteConfig) {
 
   // Generate Caddyfile
   let caddyfile = `# XIVIZLEY Cloud Suite - Reverse Proxy Configuration\n`;
-  if (config.domainOrIp.includes('.')) {
+  if (!isIp) {
     caddyfile += `{\n  email ${config.adminEmail}\n}\n\n`;
     if (config.enableNextcloud) {
       caddyfile += `cloud.${config.domainOrIp} {\n  reverse_proxy nextcloud:80\n}\n\n`;
@@ -163,19 +177,34 @@ export function buildSuiteCompose(config: SuiteConfig) {
       caddyfile += `game.${config.domainOrIp} {\n  reverse_proxy game_cockpit:9000\n}\n\n`;
     }
   } else {
-    caddyfile += `:80 {\n`;
-    if (config.enableNextcloud) caddyfile += `  handle_path /cloud* {\n    reverse_proxy nextcloud:80\n  }\n`;
-    if (config.enableVaultwarden) caddyfile += `  handle_path /pass* {\n    reverse_proxy vaultwarden:80\n  }\n`;
-    if (config.enablePulse) caddyfile += `  handle_path /pulse* {\n    reverse_proxy pulse_sentinel:3001\n  }\n`;
-    caddyfile += `}\n`;
+    caddyfile += `{\n  auto_https off\n}\n\n`;
+    caddyfile += `:80 {\n  respond "XIVIZLEY Cloud Suite is active! Nextcloud (:8080), Vaultwarden (:8081), Pulse (:3001), Cockpit (:9000)"\n}\n\n`;
+    if (config.enableNextcloud) {
+      caddyfile += `:8080 {\n  reverse_proxy nextcloud:80\n}\n\n`;
+    }
+    if (config.enableVaultwarden) {
+      caddyfile += `:8081 {\n  reverse_proxy vaultwarden:80\n}\n\n`;
+    }
+    if (config.enablePulse) {
+      caddyfile += `:3001 {\n  reverse_proxy pulse_sentinel:3001\n}\n\n`;
+    }
+    if (config.enableGameCockpit) {
+      caddyfile += `:9000 {\n  reverse_proxy game_cockpit:9000\n}\n\n`;
+    }
   }
 
-  const envContent = `# XIVIZLEY Cloud Suite Environment Configuration
+  let envContent = `# XIVIZLEY Cloud Suite Environment Configuration
 POSTGRES_PASSWORD=${postgresPassword}
 VAULTWARDEN_ADMIN_TOKEN=${vaultwardenAdminToken}
 HOST_DOMAIN_OR_IP=${config.domainOrIp}
 ADMIN_EMAIL=${config.adminEmail}
 `;
+
+  if (config.enableNextcloud) {
+    envContent += `NEXTCLOUD_ADMIN_USER=${nextcloudAdminUser}
+NEXTCLOUD_ADMIN_PASSWORD=${nextcloudAdminPassword}
+`;
+  }
 
   const startScript = `#!/usr/bin/env bash
 set -e
@@ -186,7 +215,18 @@ echo "✅ XIVIZLEY Cloud Suite başarıyla ayağa kalktı!"
 echo "   Panel ve servislerinize ${config.domainOrIp} üzerinden erişebilirsiniz."
 `;
 
-  return { yamlContent, caddyfile, envContent, startScript };
+  return {
+    yamlContent,
+    caddyfile,
+    envContent,
+    startScript,
+    credentials: {
+      postgresPassword,
+      nextcloudAdminUser,
+      nextcloudAdminPassword,
+      vaultwardenAdminToken,
+    },
+  };
 }
 
 export async function runSuiteInstaller(): Promise<void> {
@@ -262,7 +302,7 @@ export async function runSuiteInstaller(): Promise<void> {
   const s = p.spinner();
   s.start('XIVIZLEY Cloud Suite yapılandırması ve şifreleri üretiliyor...');
 
-  const { yamlContent, caddyfile, envContent, startScript } = buildSuiteCompose(config);
+  const { yamlContent, caddyfile, envContent, startScript, credentials } = buildSuiteCompose(config);
 
   const files = [
     { filename: 'docker-compose.yml', content: yamlContent },
@@ -278,11 +318,20 @@ export async function runSuiteInstaller(): Promise<void> {
 
   s.stop('Konfigürasyon dosyaları başarıyla oluşturuldu.');
 
+  let credNotes = '';
+  if (config.enableNextcloud) {
+    credNotes += `👤 Nextcloud Admin: ${credentials.nextcloudAdminUser} / ${credentials.nextcloudAdminPassword}\n`;
+  }
+  if (config.enableVaultwarden) {
+    credNotes += `🔐 Vaultwarden Token: ${credentials.vaultwardenAdminToken.slice(0, 12)}...\n`;
+  }
+
   p.note(
     `📂 Dizin: ${pc.cyan(targetDir)}\n` +
+    credNotes +
     `📄 docker-compose.yml (Üretildi)\n` +
     `🔑 .env (Güvenli Şifreler Kaydedildi)\n` +
-    `🛡️ Caddyfile (SSL Yapılandırıldı)\n` +
+    `🛡️ Caddyfile (SSL / Proxy Yapılandırıldı)\n` +
     `🚀 start.sh (Yürütülebilir Betik Hazır)`,
     'Kurulum Özeti'
   );

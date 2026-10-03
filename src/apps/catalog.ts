@@ -30,11 +30,23 @@ export function getModulesByCategory(category: ModuleCategory): ModuleDefinition
 
 export function getCategories(): Array<{ id: ModuleCategory; label: string; count: number }> {
   const all = getAllModules();
-  const cats: ModuleCategory[] = ['media', 'network', 'security', 'storage', 'game', 'platform', 'app'];
+  const cats: ModuleCategory[] = [
+    'media',
+    'network',
+    'proxy',
+    'tunnel',
+    'security',
+    'storage',
+    'game',
+    'platform',
+    'app',
+  ];
 
-  return cats.map((cat) => ({
-    id: cat,
-    label: CATEGORY_LABELS[cat] || cat,
-    count: all.filter((m) => m.category === cat).length,
-  }));
+  return cats
+    .map((cat) => ({
+      id: cat,
+      label: CATEGORY_LABELS[cat] || cat,
+      count: all.filter((m) => m.category === cat).length,
+    }))
+    .filter((c) => c.count > 0);
 }

@@ -11,14 +11,16 @@ export interface PortCheckResult {
 }
 
 export function isPortInUse(port: number, host = '127.0.0.1', timeoutMs = 400): Promise<boolean> {
+  if (isNaN(port) || port < 1 || port > 65535) {
+    return Promise.resolve(false);
+  }
+
   return new Promise((resolve) => {
     const socket = new net.Socket();
-    let inUse = false;
 
     socket.setTimeout(timeoutMs);
 
     socket.once('connect', () => {
-      inUse = true;
       socket.destroy();
       resolve(true);
     });
@@ -29,10 +31,16 @@ export function isPortInUse(port: number, host = '127.0.0.1', timeoutMs = 400): 
     });
 
     socket.once('error', () => {
+      socket.destroy();
       resolve(false);
     });
 
-    socket.connect(port, host);
+    try {
+      socket.connect(port, host);
+    } catch {
+      socket.destroy();
+      resolve(false);
+    }
   });
 }
 

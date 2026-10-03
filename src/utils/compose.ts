@@ -42,6 +42,12 @@ export function resolvePortConflicts(
 
       if (allocatedPorts.has(desired)) {
         conflictsDetected = true;
+        if (portDef.locked) {
+          log.push(`[PORT RADAR] ⚠️ ${mod.name} (${portDef.label}): ${desired} portu kilitli/sabit (protokol zorunlu). Alternatif port atanamadı.`);
+          resolvedMappings.set(key, { internal: portDef.internal, host: desired, remapped: false });
+          continue;
+        }
+
         // Search in alternatives or find free port
         const alts = PORT_ALTERNATIVES[desired] || [];
         let chosen: number | null = null;
