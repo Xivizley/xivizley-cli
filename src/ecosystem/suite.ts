@@ -342,7 +342,7 @@ export function buildUnifiedHubCompose(config: SuiteConfig) {
 
   const yamlContent = dump(compose, { indent: 2, lineWidth: -1 });
 
-  let caddyfile = `# XIVIZLEY Nextcloud Unified Hub - Caddy Reverse Proxy\n`;
+  let caddyfile = `# XIVIZLEY Unified Hub - Caddy Reverse Proxy\n`;
   if (!isIp) {
     caddyfile += `{\n  email ${config.adminEmail}\n}\n\n`;
     caddyfile += `${config.domainOrIp} {\n  reverse_proxy hub:3000\n}\n`;
@@ -351,7 +351,7 @@ export function buildUnifiedHubCompose(config: SuiteConfig) {
     caddyfile += `:80 {\n  reverse_proxy hub:3000\n}\n`;
   }
 
-  const envContent = `# XIVIZLEY Nextcloud Unified Hub Configuration
+  const envContent = `# XIVIZLEY Unified Hub Configuration
 POSTGRES_PASSWORD=${postgresPassword}
 COOKIE_SECRET=${cookieSecret}
 VAULT_MASTER_KEY=${vaultMasterKey}
@@ -361,7 +361,7 @@ ADMIN_EMAIL=${config.adminEmail}
 
   const startScript = `#!/usr/bin/env bash
 set -e
-echo "🚀 XIVIZLEY Nextcloud Unified Hub Başlatılıyor..."
+echo "🚀 XIVIZLEY Unified Hub Başlatılıyor..."
 docker compose pull || true
 docker compose up -d
 echo "✅ XIVIZLEY Unified Hub başarıyla ayağa kalktı!"
@@ -596,7 +596,7 @@ export async function runSuiteInstaller(): Promise<void> {
     options: [
       {
         value: 'unified_hub',
-        label: '👑 XIVIZLEY Nextcloud Unified Hub (Önerilen - Asıl Ekosistemimiz)',
+        label: '👑 XIVIZLEY Unified Hub (Önerilen - Asıl Ekosistemimiz)',
         hint: 'SSO Hub, Drive, Pass, Pulse Sentinel, Shield WAF & Game Cockpit (Tek Entegre Panel)',
       },
       {
@@ -681,7 +681,7 @@ export async function runSuiteInstaller(): Promise<void> {
     };
 
     const s = p.spinner();
-    s.start('XIVIZLEY Nextcloud Unified Hub yapılandırması ve SQL şemaları üretiliyor...');
+    s.start('XIVIZLEY Unified Hub yapılandırması ve SQL şemaları üretiliyor...');
 
     const { yamlContent, caddyfile, envContent, startScript, sqlInitContent, credentials } = buildUnifiedHubCompose(config);
 
@@ -731,7 +731,7 @@ export async function runSuiteInstaller(): Promise<void> {
       }
     }
 
-    p.outro(pc.bold(pc.magenta('👑 XIVIZLEY Nextcloud Unified Hub Kurulumu Tamamlandı!')));
+    p.outro(pc.bold(pc.magenta('👑 XIVIZLEY Unified Hub Kurulumu Tamamlandı!')));
     return;
   }
 

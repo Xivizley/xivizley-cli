@@ -20,7 +20,7 @@ export async function launchInteractiveTUI(): Promise<void> {
       {
         value: 'suite',
         label: '👑 XIVIZLEY Cloud Suite',
-        hint: 'Amiral Gemisi Bulut Paketi (Nextcloud + Passwords + Pulse + Game + Caddy)',
+        hint: 'Amiral Gemisi Bulut Paketi (XIVIZLEY Hub + Drive + Pass + Pulse + Shield + Game + Store)',
       },
       {
         value: 'apps',
