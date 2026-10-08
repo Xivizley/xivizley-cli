@@ -8,10 +8,10 @@
   ██╔╝ ██╗██║ ╚████╔╝ ██║███████╗███████╗███████╗   ██║   
   ╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝   
   >> XIVIZLEY Industrial Engine v1.0.0
-  >> Kurucu & Mimar: Alperen Celal (14, Bursa)
+  >> Kurucu & Mimar: Alperen
 ```
 
-Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **31 Komple Şablonu** hem de kütüphanedeki **112+ Bağımsız Uygulamayı (Standalone Apps)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
+Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **31 Komple Şablonu** hem de kütüphanedeki **115 Bağımsız Uygulamayı (Standalone Apps)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
 
 ---
 
@@ -79,6 +79,6 @@ npm test
 
 ## 👨‍💻 Geliştirici ve Lisans
 
-- **Kurucu & Mimar:** Alperen Celal (14, Bursa)
+- **Kurucu & Mimar:** Alperen
 - **Web Platform:** [xivizley.com.tr](https://xivizley.com.tr)
 - **Lisans:** MIT

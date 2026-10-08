@@ -43,7 +43,7 @@ export async function runDisasterRecoveryGenerator(): Promise<void> {
   const backupScript = `#!/usr/bin/env bash
 # ============================================================
 # XIVIZLEY Disaster Recovery Engine - Automated Backup Script
-# Kurucu & Mimar: Alperen Celal (14, Bursa)
+# Kurucu & Mimar: Alperen
 # ============================================================
 set -euo pipefail
 
@@ -102,7 +102,7 @@ echo "   Arşiv: \${BACKUP_DIR}/\${ARCHIVE_NAME}"
   const restoreScript = `#!/usr/bin/env bash
 # ============================================================
 # XIVIZLEY Disaster Recovery Engine - Automated Restore Script
-# Kurucu & Mimar: Alperen Celal (14, Bursa)
+# Kurucu & Mimar: Alperen
 # ============================================================
 set -euo pipefail
 
