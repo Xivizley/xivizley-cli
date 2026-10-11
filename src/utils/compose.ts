@@ -83,10 +83,11 @@ export function buildComposeFromModules(
     networkName?: string;
     customEnv?: Record<string, Record<string, string>>;
     portOverrides?: Record<string, number>;
+    allocatedPorts?: Set<number>;
   } = {}
 ): { compose: DockerComposeConfig; yamlString: string; portLog: string[] } {
   const networkName = options.networkName || 'xivizley_network';
-  const { resolvedMappings, log } = resolvePortConflicts(modules);
+  const { resolvedMappings, log } = resolvePortConflicts(modules, options.allocatedPorts);
 
   const services: Record<string, ComposeService> = {};
 

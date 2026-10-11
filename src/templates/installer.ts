@@ -92,7 +92,9 @@ docker compose up -d
   );
 
   let shouldStart = false;
-  if (isNonInteractive) {
+  if (options.start === false) {
+    shouldStart = false;
+  } else if (isNonInteractive) {
     shouldStart = Boolean(options.start === true);
   } else {
     const confirmStart = await p.confirm({

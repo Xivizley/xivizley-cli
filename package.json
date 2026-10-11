@@ -29,7 +29,7 @@
     "server",
     "tui"
   ],
-  "author": "Alperen <108253164+alperencelalhosca@users.noreply.github.com>",
+  "author": "Alperen <alperencelal16@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@clack/prompts": "^1.8.1",

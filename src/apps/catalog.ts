@@ -1,4 +1,4 @@
-import { MODULE_CATALOG, type ModuleDefinition, type ModuleCategory, CATEGORY_LABELS } from '../data/modules.js';
+import { MODULE_CATALOG, type ModuleDefinition, type ModuleCategory, CATEGORY_LABELS, getAllCategories } from '../data/modules.js';
 
 export function getAllModules(): ModuleDefinition[] {
   return MODULE_CATALOG.filter((m) => !m.isOS && !m.isHostInstall);
@@ -30,17 +30,7 @@ export function getModulesByCategory(category: ModuleCategory): ModuleDefinition
 
 export function getCategories(): Array<{ id: ModuleCategory; label: string; count: number }> {
   const all = getAllModules();
-  const cats: ModuleCategory[] = [
-    'media',
-    'network',
-    'proxy',
-    'tunnel',
-    'security',
-    'storage',
-    'game',
-    'platform',
-    'app',
-  ];
+  const cats = getAllCategories().filter((c) => c !== 'os');
 
   return cats
     .map((cat) => ({
