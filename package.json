@@ -5,7 +5,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "xivizley": "./bin/xivizley.mjs"
+    "xivizley": "bin/xivizley.mjs"
   },
   "files": [
     "dist",
