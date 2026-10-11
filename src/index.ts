@@ -24,12 +24,12 @@ export async function launchInteractiveTUI(): Promise<void> {
       },
       {
         value: 'apps',
-        label: '📦 Tekil Uygulama Mağazası (112+ Servis)',
+        label: '📦 Tekil Uygulama Mağazası (134 Docker Modülü)',
         hint: 'Arama, kategoriler, tekil ve çoklu port çakışmasız kurulum',
       },
       {
         value: 'templates',
-        label: '🌟 31 Endüstriyel Şablon Kataloğu (Full Stacks)',
+        label: '🌟 33 Endüstriyel Şablon Kataloğu (Full Stacks)',
         hint: 'DIN 40719 standartlarında AI, E-Ticaret, Medya, Oyun ve DevOps mimarileri',
       },
       {
@@ -100,11 +100,14 @@ export function createCli(): Command {
 
   program
     .command('install [app]')
-    .description('📦 Belirtilen tekil uygulamayı doğrudan yapılandırıp kurar (Örn: xivizley install jellyfin)')
-    .action(async (app?: string) => {
+    .description('📦 Belirtilen tekil uygulamayı doğrudan yapılandırıp kurar (Örn: xivizley install dockge)')
+    .option('-y, --yes', 'Varsayılan ayarlar ile onay istemeden otomatik kur')
+    .option('-d, --dir <dir>', 'Hedef kurulum dizini')
+    .option('--no-start', 'Konteyneri otomatik başlatma, yalnızca compose ve konfigürasyon dosyalarını üret')
+    .action(async (app?: string, options?: { yes?: boolean; dir?: string; start?: boolean }) => {
       printBanner();
       if (app) {
-        await runDirectAppInstall(app);
+        await runDirectAppInstall(app, options);
       } else {
         await runStandaloneAppStore();
       }
@@ -112,7 +115,7 @@ export function createCli(): Command {
 
   program
     .command('apps')
-    .description('📦 112+ Tekil Uygulama Mağazasını açar')
+    .description('📦 134 Docker Modülü Tekil Uygulama Mağazasını açar')
     .action(async () => {
       printBanner();
       await runStandaloneAppStore();
@@ -121,11 +124,14 @@ export function createCli(): Command {
   program
     .command('templates [id]')
     .alias('template')
-    .description('🌟 31 Endüstriyel Şablon Kataloğunu açar veya belirtilen şablonu kurar')
-    .action(async (id?: string) => {
+    .description('🌟 33 Endüstriyel Şablon Kataloğunu açar veya belirtilen şablonu kurar')
+    .option('-y, --yes', 'Varsayılan ayarlar ile onay istemeden otomatik kur')
+    .option('-d, --dir <dir>', 'Hedef kurulum dizini')
+    .option('--no-start', 'Konteyneri otomatik başlatma, yalnızca compose ve konfigürasyon dosyalarını üret')
+    .action(async (id?: string, options?: { yes?: boolean; dir?: string; start?: boolean }) => {
       printBanner();
       if (id) {
-        await runDirectTemplateInstall(id);
+        await runDirectTemplateInstall(id, options);
       } else {
         await runTemplateCatalog();
       }

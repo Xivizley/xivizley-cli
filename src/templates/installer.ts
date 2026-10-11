@@ -7,7 +7,15 @@ import { TEMPLATE_CATEGORIES, type StackTemplate, type TemplateCategory } from '
 import { saveStackFiles, executeDockerCompose } from '../utils/system.js';
 import { formatBadge } from '../ui/banner.js';
 
-export async function deployTemplate(template: StackTemplate): Promise<void> {
+export interface DeployTemplateOptions {
+  yes?: boolean;
+  dir?: string;
+  start?: boolean;
+}
+
+export async function deployTemplate(template: StackTemplate, options: DeployTemplateOptions = {}): Promise<void> {
+  const isNonInteractive = Boolean(options.yes || !process.stdin.isTTY);
+
   p.intro(formatBadge(`🌟 ŞABLON: ${template.title}`, 'violet'));
 
   console.log(pc.bold(pc.cyan(`  ${template.subtitle}`)));
@@ -17,13 +25,17 @@ export async function deployTemplate(template: StackTemplate): Promise<void> {
   console.log(pc.dim(`  🏷️ Etiketler: `) + pc.cyan(template.tags.join(', ')));
   console.log(pc.dim(`  📦 Modüller: `) + pc.magenta(template.moduleIds.join(', ')));
 
-  const defaultDir = `./xivizley-stack-${template.id}`;
-  const targetDirInput = await p.text({
-    message: 'Şablonun Kurulacağı Hedef Dizin:',
-    initialValue: defaultDir,
-  });
+  const defaultDir = options.dir || `./xivizley-stack-${template.id}`;
+  let targetDirInput = defaultDir;
+  if (!isNonInteractive) {
+    const promptedDir = await p.text({
+      message: 'Şablonun Kurulacağı Hedef Dizin:',
+      initialValue: defaultDir,
+    });
 
-  if (p.isCancel(targetDirInput)) return;
+    if (p.isCancel(promptedDir)) return;
+    targetDirInput = promptedDir;
+  }
 
   const targetDir = path.resolve(process.cwd(), targetDirInput);
 
@@ -79,12 +91,20 @@ docker compose up -d
     `${template.title} Hazır`
   );
 
-  const shouldStart = await p.confirm({
-    message: 'Şablon konteynerlerini şimdi Docker ile başlatmak istiyor musunuz?',
-    initialValue: true,
-  });
+  let shouldStart = false;
+  if (isNonInteractive) {
+    shouldStart = Boolean(options.start === true);
+  } else {
+    const confirmStart = await p.confirm({
+      message: 'Şablon konteynerlerini şimdi Docker ile başlatmak istiyor musunuz?',
+      initialValue: true,
+    });
+    if (!p.isCancel(confirmStart) && confirmStart) {
+      shouldStart = true;
+    }
+  }
 
-  if (!p.isCancel(shouldStart) && shouldStart) {
+  if (shouldStart) {
     const runSpinner = p.spinner();
     runSpinner.start('Docker Compose başlatılıyor...');
     const res = await executeDockerCompose(targetDir);
@@ -100,7 +120,7 @@ docker compose up -d
 }
 
 export async function runTemplateCatalog(): Promise<void> {
-  p.intro(formatBadge('🌟 31 ENDÜSTRİYEL ŞABLON KATALOĞU (Full Stacks)', 'violet'));
+  p.intro(formatBadge('🌟 33 ENDÜSTRİYEL ŞABLON KATALOĞU (Full Stacks)', 'violet'));
 
   const catOptions = TEMPLATE_CATEGORIES.map((c) => ({
     value: c.id,
@@ -137,12 +157,12 @@ export async function runTemplateCatalog(): Promise<void> {
   }
 }
 
-export async function runDirectTemplateInstall(templateId: string): Promise<void> {
+export async function runDirectTemplateInstall(templateId: string, options: DeployTemplateOptions = {}): Promise<void> {
   const t = getTemplate(templateId);
   if (t) {
-    await deployTemplate(t);
+    await deployTemplate(t, options);
   } else {
     console.log(pc.red(`❌ Hata: "${templateId}" adında bir şablon bulunamadı.`));
-    console.log(pc.cyan('Tüm 31 şablonu listelemek için: xivizley\n'));
+    console.log(pc.cyan('Tüm 33 şablonu listelemek için: xivizley\n'));
   }
 }

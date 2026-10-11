@@ -1160,6 +1160,136 @@ services:
     image: redis:alpine
     restart: unless-stopped`,
   },
+  // ═════════════════════════════════════════════════════════════
+  // YENİ (2026) — ULTIMATE *ARR MEDYA OTOMASYONU
+  // ═════════════════════════════════════════════════════════════
+  {
+    id: 'ultimate-arr-media',
+    title: 'Ultimate *Arr Medya Otomasyonu',
+    subtitle: 'Jellyfin + Jellyseerr + Sonarr + Radarr + Prowlarr + Bazarr + qBittorrent + Gluetun',
+    description: 'Tam otomatik medya otomasyon yığını: istek portalı (Jellyseerr), merkezi indeks yönetimi (Prowlarr), dizi/film takibi (Sonarr/Radarr), otomatik altyazı (Bazarr), indirme istemcisi (qBittorrent) ve VPN korumalı trafik (Gluetun) ile Jellyfin kütüphaneniz kendi kendine dolar.',
+    category: 'media',
+    isPro: false,
+    difficulty: 'İleri Düzey',
+    minRamGB: 6,
+    icon: '🎬',
+    color: '#7C3AED',
+    tags: ['Jellyfin', 'Jellyseerr', 'Sonarr', 'Radarr', 'Prowlarr', 'Bazarr', 'qBittorrent', 'Gluetun'],
+    moduleIds: ['jellyfin', 'jellyseerr', 'sonarr', 'radarr', 'prowlarr', 'bazarr', 'qbittorrent', 'gluetun'],
+    composeSnippet: `services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    restart: unless-stopped
+    ports: ["8096:8096"]
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - /mnt/media:/media
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    restart: unless-stopped
+    ports: ["5055:5055"]
+    volumes:
+      - ./jellyseerr/config:/app/config
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    restart: unless-stopped
+    ports: ["9696:9696"]
+    volumes:
+      - ./prowlarr/config:/config
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    restart: unless-stopped
+    ports: ["8989:8989"]
+    volumes:
+      - ./sonarr/config:/config
+      - ./tvshows:/tv
+      - ./downloads:/downloads
+
+  radarr:
+    image: linuxserver/radarr:latest
+    restart: unless-stopped
+    ports: ["7878:7878"]
+    volumes:
+      - ./radarr/config:/config
+      - ./movies:/movies
+      - ./downloads:/downloads
+
+  bazarr:
+    image: linuxserver/bazarr:latest
+    restart: unless-stopped
+    ports: ["6767:6767"]
+    volumes:
+      - ./bazarr/config:/config
+      - ./movies:/movies
+      - ./tvshows:/tv
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    restart: unless-stopped
+    ports: ["8080:8080", "6881:6881", "6881:6881/udp"]
+    volumes:
+      - ./qbittorrent/config:/config
+      - ./downloads:/downloads
+
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    restart: unless-stopped
+    cap_add: [NET_ADMIN]
+    ports: ["8888:8888"]
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=YOUR_PRIVATE_KEY`,
+  },
+  // ═════════════════════════════════════════════════════════════
+  // YENİ (2026) — HAFİF HOMELAB GÖZLEM & YÖNETİM
+  // ═════════════════════════════════════════════════════════════
+  {
+    id: 'lightweight-homelab-ops',
+    title: 'Hafif Homelab Gözlem & Yönetim',
+    subtitle: 'Dockge + Beszel + Homarr',
+    description: 'Düşük kaynaklı üçlü: compose yönetimi (Dockge), hafif sistem izleme (Beszel) ve tek ekrandan başlatma panosu (Homarr). Mini sunucular ve yeni başlayanlar için ideal.',
+    category: 'devops',
+    isPro: false,
+    difficulty: 'Kolay',
+    minRamGB: 2,
+    icon: '📊',
+    color: '#2563EB',
+    tags: ['Dockge', 'Beszel', 'Homarr', 'İzleme', 'Pano', 'Compose'],
+    moduleIds: ['dockge', 'beszel', 'homarr'],
+    composeSnippet: `services:
+  dockge:
+    image: louislam/dockge:latest
+    restart: unless-stopped
+    ports: ["5001:5001"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/stacks:/opt/stacks
+    environment:
+      - DOCKGE_STACKS_DIR=/opt/stacks
+
+  beszel:
+    image: henrygd/beszel:latest
+    restart: unless-stopped
+    ports: ["8090:8090"]
+    volumes:
+      - ./beszel/beszel_data:/beszel_data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  homarr:
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    ports: ["7575:7575"]
+    volumes:
+      - ./homarr/appdata:/appdata
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - SECRET_ENCRYPTION_KEY=change_me_strong_key`,
+  },
 ];
 
 // ─── Legacy ArchitectureTemplate & PREDEFINED_TEMPLATES ───────

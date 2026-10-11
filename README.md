@@ -11,7 +11,7 @@
   >> Kurucu & Mimar: Alperen
 ```
 
-Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **31 Komple Şablonu** hem de kütüphanedeki **115 Bağımsız Uygulamayı (Standalone Apps)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
+Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **33 Komple Şablonu** hem de kütüphanedeki **134 Docker Modülünü (130 Bağımsız Uygulama)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
 
 ---
 
@@ -24,13 +24,15 @@ npx xivizley
 # Doğrudan Amiral Gemisi Cloud Suite Kurulumu
 npx xivizley suite
 
-# Tekil Uygulama Kurulumu (Örn: Jellyfin, Vaultwarden, Ollama)
-npx xivizley install jellyfin
+# Tekil Uygulama Kurulumu (Örn: Dockge, Beszel, Prowlarr, Jellyfin)
+npx xivizley install dockge
+npx xivizley install beszel
+npx xivizley install prowlarr
 
-# 112+ Tekil Uygulama Mağazasını Açma
+# 134 Docker Modülü Tekil Uygulama Mağazasını Açma
 npx xivizley apps
 
-# 31 Endüstriyel Şablon Kataloğunu İnceleme veya Kurma
+# 33 Endüstriyel Şablon Kataloğunu İnceleme veya Kurma
 npx xivizley templates
 
 # Pre-flight Port Çakışma Radarı ve Sunucu Sağlık Taraması
@@ -50,14 +52,14 @@ npx xivizley sync <blueprint-id>
 1. **👑 XIVIZLEY Cloud Suite**:
    Nextcloud Hub & Drive, Vaultwarden Passwords, Pulse Sentinel, Game Cockpit ve Caddy Reverse Proxy (otomatik HTTPS SSL).
 
-2. **📦 Tekil Uygulama Mağazası (112+ Servis)**:
-   Medya, Güvenlik/VPN, Bulut/Ofis, Oyun Sunucuları, DevOps/İzleme, Veritabanları ve Yapay Zeka kategorilerinde 115 adet bağımsız Docker uygulaması. Tek tıkla port özelleştirme ve ortam değişkenleri yönetimi.
+2. **📦 Tekil Uygulama Mağazası (134 Docker Modülü / 130+ Servis)**:
+   Medya, Güvenlik/VPN, Bulut/Ofis, Oyun Sunucuları, DevOps/İzleme, Veritabanları ve Yapay Zeka kategorilerinde 134 adet Docker modülü (130 bağımsız uygulama). Tek tıkla port özelleştirme ve ortam değişkenleri yönetimi.
 
 3. **☑️ Çoklu Seçim Bestecisi (Multi-Select Composer)**:
    Birden fazla uygulamayı aynı anda seçtiğinizde port çakışmalarını otomatik tespit eder ve alternatif portlara yönlendirerek tek bir `docker-compose.yml` içinde birleştirir.
 
-4. **🌟 31 Endüstriyel Şablon (Full Stacks)**:
-   DIN 40719 standartlarında hazırlanmış Yerel LLM, Medya Merkezi, Güvenlik, Oyun Sunucuları ve SaaS altyapıları.
+4. **🌟 33 Endüstriyel Şablon (Full Stacks)**:
+   DIN 40719 standartlarında hazırlanmış Yerel LLM, Medya Merkezi, Güvenlik, Oyun Sunucuları ve SaaS altyapıları (yeni: Ultimate *Arr Medya Otomasyonu ve Hafif Homelab Gözlem).
 
 5. **🛡️ VDS Doktoru & Port Çakışma Radarı**:
    Sunucu soketlerini canlı tarayarak hangi portların açık, hangilerinin kullanımda olduğunu raporlar. Docker Engine ve RAM/CPU durumunu ölçer.
@@ -73,7 +75,7 @@ npx xivizley sync <blueprint-id>
 npm test
 ```
 
-8/8 birim ve entegrasyon testleri ile katalog bütünlüğü, 115 uygulamanın geçerli compose üretimi, port çakışma çözümleyicisi ve CLI argümanları doğrulanmaktadır.
+12/12 birim ve entegrasyon testleri ile katalog bütünlüğü, 134 modülün geçerli compose üretimi, port çakışma çözümleyicisi ve CLI argümanları doğrulanmaktadır.
 
 ---
 
