@@ -12,6 +12,7 @@ export interface ComposeService {
   networks?: string[];
   depends_on?: string[];
   command?: string | string[];
+  cap_add?: string[];
 }
 
 export interface DockerComposeConfig {
@@ -122,6 +123,7 @@ export function buildComposeFromModules(
       container_name: `xivizley_${svcKey}`,
       restart: 'unless-stopped',
       networks: [networkName],
+      ...(mod.id === 'gluetun' ? { cap_add: ['NET_ADMIN'] } : {}),
       ...(servicePorts.length > 0 ? { ports: servicePorts } : {}),
       ...(Object.keys(serviceEnv).length > 0 ? { environment: serviceEnv } : {}),
       ...(serviceVolumes.length > 0 ? { volumes: serviceVolumes } : {}),

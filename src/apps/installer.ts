@@ -8,7 +8,15 @@ import { buildComposeFromModules } from '../utils/compose.js';
 import { saveStackFiles, executeDockerCompose, isPortInUse } from '../utils/system.js';
 import { formatBadge } from '../ui/banner.js';
 
-export async function promptSingleAppConfig(mod: ModuleDefinition): Promise<void> {
+export interface InstallAppOptions {
+  yes?: boolean;
+  dir?: string;
+  start?: boolean;
+}
+
+export async function promptSingleAppConfig(mod: ModuleDefinition, options: InstallAppOptions = {}): Promise<void> {
+  const isNonInteractive = Boolean(options.yes || !process.stdin.isTTY);
+
   p.intro(formatBadge(`📦 KURULUM: ${mod.name}`, 'violet'));
 
   console.log(pc.dim(`  Açıklama: ${mod.description}`));
@@ -26,7 +34,7 @@ export async function promptSingleAppConfig(mod: ModuleDefinition): Promise<void
   }
 
   const customPorts: Record<string, number> = {};
-  if (mod.ports.length > 0) {
+  if (!isNonInteractive && mod.ports.length > 0) {
     const customizePorts = await p.confirm({
       message: 'Varsayılan portları değiştirmek ister misiniz?',
       initialValue: false,
@@ -53,7 +61,7 @@ export async function promptSingleAppConfig(mod: ModuleDefinition): Promise<void
   // Environment variables
   const customEnv: Record<string, string> = {};
   const requiredEnvs = mod.environment.filter((e) => e.required);
-  if (requiredEnvs.length > 0) {
+  if (!isNonInteractive && requiredEnvs.length > 0) {
     console.log(pc.cyan('\n  🔧 Gerekli Yapılandırma Değişkenleri:'));
     for (const env of requiredEnvs) {
       const val = await p.text({
@@ -65,13 +73,17 @@ export async function promptSingleAppConfig(mod: ModuleDefinition): Promise<void
     }
   }
 
-  const defaultDir = `./xivizley-${mod.id}`;
-  const targetDirInput = await p.text({
-    message: 'Kurulum Hedef Dizini:',
-    initialValue: defaultDir,
-  });
+  const defaultDir = options.dir || `./xivizley-${mod.id}`;
+  let targetDirInput = defaultDir;
+  if (!isNonInteractive) {
+    const promptedDir = await p.text({
+      message: 'Kurulum Hedef Dizini:',
+      initialValue: defaultDir,
+    });
 
-  if (p.isCancel(targetDirInput)) return;
+    if (p.isCancel(promptedDir)) return;
+    targetDirInput = promptedDir;
+  }
 
   const targetDir = path.resolve(process.cwd(), targetDirInput);
 
@@ -121,12 +133,20 @@ echo "✅ ${mod.name} başarıyla ayağa kalktı!"
     `${mod.name} Hazır`
   );
 
-  const shouldStart = await p.confirm({
-    message: 'Konteyneri hemen Docker ile başlatmak istiyor musunuz?',
-    initialValue: true,
-  });
+  let shouldStart = false;
+  if (isNonInteractive) {
+    shouldStart = Boolean(options.start === true);
+  } else {
+    const confirmStart = await p.confirm({
+      message: 'Konteyneri hemen Docker ile başlatmak istiyor musunuz?',
+      initialValue: true,
+    });
+    if (!p.isCancel(confirmStart) && confirmStart) {
+      shouldStart = true;
+    }
+  }
 
-  if (!p.isCancel(shouldStart) && shouldStart) {
+  if (shouldStart) {
     const runSpinner = p.spinner();
     runSpinner.start(`${mod.name} konteyneri başlatılıyor...`);
     const res = await executeDockerCompose(targetDir);
@@ -229,7 +249,7 @@ echo "✅ Tüm servisler başarıyla ayağa kalktı!"
 }
 
 export async function runStandaloneAppStore(): Promise<void> {
-  p.intro(formatBadge('📦 XIVIZLEY TEKİL UYGULAMA MAĞAZASI (112+ Servis)', 'violet'));
+  p.intro(formatBadge('📦 XIVIZLEY TEKİL UYGULAMA MAĞAZASI (134 Docker Modülü)', 'violet'));
 
   const mode = await p.select({
     message: 'Uygulamaları nasıl bulmak istersiniz?',
@@ -237,7 +257,7 @@ export async function runStandaloneAppStore(): Promise<void> {
       { value: 'search', label: '🔍 Hızlı Arama (İsim, port veya anahtar kelime ile)', hint: 'Örn: jellyfin, wireguard' },
       { value: 'category', label: '📁 Kategoriye Göre Göz At (Medya, Güvenlik, Bulut, Oyun...)', hint: 'Kategorize liste' },
       { value: 'multi', label: '☑️ Çoklu Seçim Modu (Birden fazla app seçip tek compose üret)', hint: 'Composer modu' },
-      { value: 'all', label: '📋 Tüm 115 Uygulamayı Alfabetik Listele', hint: 'Tam katalog' },
+      { value: 'all', label: '📋 Tüm 130 Uygulamayı Alfabetik Listele', hint: 'Tam katalog' },
     ],
   });
 
@@ -330,17 +350,17 @@ export async function runStandaloneAppStore(): Promise<void> {
   }
 }
 
-export async function runDirectAppInstall(appQuery: string): Promise<void> {
+export async function runDirectAppInstall(appQuery: string, options: InstallAppOptions = {}): Promise<void> {
   const mod = getModule(appQuery);
   if (mod) {
-    await promptSingleAppConfig(mod);
+    await promptSingleAppConfig(mod, options);
     return;
   }
 
   // If not exact match, search
   const matches = searchModules(appQuery);
   if (matches.length === 1) {
-    await promptSingleAppConfig(matches[0]);
+    await promptSingleAppConfig(matches[0], options);
     return;
   } else if (matches.length > 1) {
     p.intro(formatBadge(`📦 ARAMA: ${appQuery}`, 'violet'));
@@ -354,7 +374,7 @@ export async function runDirectAppInstall(appQuery: string): Promise<void> {
     });
     if (p.isCancel(selectedAppId)) return;
     const chosen = getModule(selectedAppId as string);
-    if (chosen) await promptSingleAppConfig(chosen);
+    if (chosen) await promptSingleAppConfig(chosen, options);
   } else {
     console.log(pc.red(`❌ Hata: "${appQuery}" adında bir uygulama katalogda bulunamadı.`));
     console.log(pc.cyan(`Tüm uygulamaları görmek için: xivizley\n`));

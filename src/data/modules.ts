@@ -7,7 +7,7 @@
 // Never fetch this data from the database — keep it static.
 // ============================================================
 
-// XIVIZLEY CLI Embedded Module Catalog (115 Industrial Applications)
+// XIVIZLEY CLI Embedded Module Catalog (134 Industrial Applications)
 export type SettingType = 'boolean' | 'string' | 'select' | 'number' | 'text';
 
 export interface SettingOption {
@@ -26,8 +26,6 @@ export interface AdvancedSettingDef {
   placeholder?: string;
   [key: string]: any;
 }
-
-
 
 // ─── Type Definitions ───────────────────────────────────────
 
@@ -2978,6 +2976,476 @@ export const MODULE_CATALOG: ModuleDefinition[] = [
     icon: 'Gamepad2',
     color: '#3B82F6',
   },
+
+  // ──────────────────────────────────────────────────────────
+  // 2026 — POPÜLER EKLENTİLER (YENİ)
+  // ──────────────────────────────────────────────────────────
+  // ── MEDIA ──────────────────────────────────────────────────
+  {
+    id: 'prowlarr',
+    name: 'Prowlarr',
+    description: 'Çoklu torrent/Usenet indeks yöneticisi — Sonarr ve Radarr için merkezi dizin köprüsü.',
+    category: 'media',
+    dockerImage: 'linuxserver/prowlarr',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 9696, default: 9696, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'User ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Group ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+    ],
+    volumes: [
+      { hostPath: './prowlarr/config', containerPath: '/config', label: 'Prowlarr Config' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'sonarr', reason: 'İndeksleri Sonarr ile paylaşmak için' },
+      { moduleId: 'radarr', reason: 'İndeksleri Radarr ile paylaşmak için' },
+    ],
+    notes: ['İndeksleyicileri tek merkezden Sonarr/Radarr uygulamalarına dağıtır.'],
+    icon: 'Search',
+    color: '#F97316',
+  },
+  {
+    id: 'bazarr',
+    name: 'Bazarr',
+    description: 'Altyazı yöneticisi — Sonarr ve Radarr kütüphanelerinize otomatik altyazı indirir.',
+    category: 'media',
+    dockerImage: 'linuxserver/bazarr',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 6767, default: 6767, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'User ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Group ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+    ],
+    volumes: [
+      { hostPath: './bazarr/config', containerPath: '/config', label: 'Bazarr Config' },
+      { hostPath: './movies', containerPath: '/movies', label: 'Movies' },
+      { hostPath: './tvshows', containerPath: '/tv', label: 'TV Shows' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'sonarr', reason: 'Dizi altyazılarını yönetmek için' },
+      { moduleId: 'radarr', reason: 'Film altyazılarını yönetmek için' },
+    ],
+    notes: ['Sonarr/Radarr ile aynı medya klasörlerini paylaşmalıdır.'],
+    icon: 'Film',
+    color: '#8B5CF6',
+  },
+  {
+    id: 'lidarr',
+    name: 'Lidarr',
+    description: 'Müzik koleksiyonu yöneticisi — albümleri otomatik takip eder ve indirir.',
+    category: 'media',
+    dockerImage: 'linuxserver/lidarr',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8686, default: 8686, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'User ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Group ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+    ],
+    volumes: [
+      { hostPath: './lidarr/config', containerPath: '/config', label: 'Lidarr Config' },
+      { hostPath: './music', containerPath: '/music', label: 'Music' },
+      { hostPath: './downloads', containerPath: '/downloads', label: 'Downloads' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'qbittorrent', reason: 'İndirme istemcisi olarak kullanılır' },
+    ],
+    notes: [],
+    icon: 'Headphones',
+    color: '#22C55E',
+  },
+  {
+    id: 'jellyseerr',
+    name: 'Jellyseerr',
+    description: 'Jellyfin için istek/keşif portalı — kullanıcılar film ve dizi talep eder, otomatik indirilir.',
+    category: 'media',
+    dockerImage: 'fallenbagel/jellyseerr',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 5055, default: 5055, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+      { key: 'LOG_LEVEL', defaultValue: 'info', description: 'Log seviyesi', required: false },
+    ],
+    volumes: [
+      { hostPath: './jellyseerr/config', containerPath: '/app/config', label: 'Jellyseerr Config' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'jellyfin', reason: 'Talep edilen içerik Jellyfin kütüphanesine eklenir' },
+      { moduleId: 'sonarr', reason: 'Dizi taleplerini iletmek için' },
+      { moduleId: 'radarr', reason: 'Film taleplerini iletmek için' },
+    ],
+    notes: ['Jellyfin ve *arr uygulamaları ile birlikte yapılandırılmalıdır.'],
+    icon: 'Sparkles',
+    color: '#7C3AED',
+  },
+  {
+    id: 'tautulli',
+    name: 'Tautulli',
+    description: 'Plex için istatistik ve izleme paneli — kullanıcı aktivitesini ve oynatma geçmişini raporlar.',
+    category: 'media',
+    dockerImage: 'linuxserver/tautulli',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8181, default: 8181, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'User ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Group ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+    ],
+    volumes: [
+      { hostPath: './tautulli/config', containerPath: '/config', label: 'Tautulli Config' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'plex', reason: 'Plex sunucu istatistiklerini izlemek için' },
+    ],
+    notes: ['Plex Media Server gerektirir.'],
+    icon: 'Activity',
+    color: '#EAB308',
+  },
+  {
+    id: 'metube',
+    name: 'MeTube',
+    description: 'yt-dlp tabanlı web arayüzü — videoları açaçlıkla indirip medya kütüphanenize kaydeder.',
+    category: 'media',
+    dockerImage: 'alexta69/metube',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8081, default: 8081, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'DOWNLOAD_DIR', defaultValue: '/downloads', description: 'İndirme klasörü', required: false },
+    ],
+    volumes: [
+      { hostPath: './downloads', containerPath: '/downloads', label: 'Downloads' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'qbittorrent', reason: 'İndirilen dosyalar aynı klasöre yazılır' },
+    ],
+    notes: ['YouTube ve 1000+ siteyi destekler (yt-dlp).'],
+    icon: 'Download',
+    color: '#EF4444',
+  },
+  {
+    id: 'pinchflat',
+    name: 'Pinchflat',
+    description: 'YouTube kanal arşivleyici — kanalları/oynatma listelerini otomatik indirir ve takip eder.',
+    category: 'media',
+    dockerImage: 'ghcr.io/kieraneglin/pinchflat',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8945, default: 8945, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+    ],
+    volumes: [
+      { hostPath: './pinchflat/config', containerPath: '/config', label: 'Pinchflat Config' },
+      { hostPath: './downloads', containerPath: '/downloads', label: 'Downloads' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Kanal bazlı arşivleme ve zamanlanmış indirme destekler.'],
+    icon: 'Video',
+    color: '#F43F5E',
+  },
+
+  // ── PLATFORM ───────────────────────────────────────────────
+  {
+    id: 'dockge',
+    name: 'Dockge',
+    description: 'Docker Compose yönetim arayüzü — stack dosyalarını klasörde tutar, burada başlat/durdur.',
+    category: 'platform',
+    dockerImage: 'louislam/dockge',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 5001, default: 5001, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'DOCKGE_STACKS_DIR', defaultValue: '/opt/stacks', description: 'Compose dosyalarının klasörü', required: false },
+    ],
+    volumes: [
+      { hostPath: '/var/run/docker.sock', containerPath: '/var/run/docker.sock', label: 'Docker Socket' },
+      { hostPath: '/opt/stacks', containerPath: '/opt/stacks', label: 'Stacks Dir' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'docker', reason: 'Docker Engine gerektirir' },
+    ],
+    notes: ['Compose dosyalarınız diskte kalır (dosya tabanlı, veritabanı yok).'],
+    icon: 'LayoutGrid',
+    color: '#2563EB',
+  },
+  {
+    id: 'beszel',
+    name: 'Beszel',
+    description: 'Hafif sunucu izleme — CPU, RAM, disk ve Docker istatistiklerini sade bir panelde gösterir.',
+    category: 'platform',
+    dockerImage: 'henrygd/beszel',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8090, default: 8090, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [],
+    volumes: [
+      { hostPath: './beszel/beszel_data', containerPath: '/beszel_data', label: 'Beszel Data' },
+      { hostPath: '/var/run/docker.sock', containerPath: '/var/run/docker.sock:ro', label: 'Docker Socket' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Hafif (agent tabanlı) mimarisiyle düşük kaynak tüketir.'],
+    icon: 'Activity',
+    color: '#22C55E',
+  },
+  {
+    id: 'forgejo',
+    name: 'Forgejo',
+    description: 'Topluluk odaklı kendi barındırılan Git servisi (Gitea çatalı) — depo, sorun ve CI.',
+    category: 'platform',
+    dockerImage: 'codeberg.org/forgejo/forgejo',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 3000, default: 3000, label: 'Web UI (HTTP)', protocol: 'tcp' },
+      { internal: 22,   default: 2222, label: 'SSH Git',      protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'USER_UID', defaultValue: '1000', description: 'User ID', required: false },
+      { key: 'USER_GID', defaultValue: '1000', description: 'Group ID', required: false },
+      { key: 'FORGEJO__server__ROOT_URL', defaultValue: 'http://YOUR_SERVER_IP:3000/', description: 'Genel URL', required: false },
+    ],
+    volumes: [
+      { hostPath: './forgejo/data', containerPath: '/data', label: 'Forgejo Data' },
+      { hostPath: '/etc/timezone', containerPath: '/etc/timezone:ro', label: 'Timezone' },
+    ],
+    suggestedDependencies: [],
+    notes: ['SSH için 2222 host portu kullanılır; Git URL klonlarını buna göre ayarlayın.'],
+    icon: 'FolderSync',
+    color: '#FB923C',
+  },
+
+  // ── APP ────────────────────────────────────────────────────
+  {
+    id: 'homepage',
+    name: 'Homepage',
+    description: 'Modern, hızlı başlangıç panosu — servislerinizi YAML ile gruplayıp tek ekranda toplar.',
+    category: 'app',
+    dockerImage: 'ghcr.io/gethomepage/homepage',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 3000, default: 3001, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'HOMEPAGE_ALLOWED_HOSTS', defaultValue: '*', description: 'İzinli host(lar)', required: false },
+    ],
+    volumes: [
+      { hostPath: './homepage/config', containerPath: '/app/config', label: 'Homepage Config' },
+      { hostPath: '/var/run/docker.sock', containerPath: '/var/run/docker.sock:ro', label: 'Docker Socket' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Servis kartları ve widget\'lar YAML ile tanımlanır.'],
+    icon: 'LayoutDashboard',
+    color: '#3B82F6',
+  },
+  {
+    id: 'homarr',
+    name: 'Homarr',
+    description: 'Sürükle-bırak kişiselleştirilebilir pano — entegre widget\'larla homelab merkezi.',
+    category: 'app',
+    dockerImage: 'ghcr.io/homarr-labs/homarr',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 7575, default: 7575, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'SECRET_ENCRYPTION_KEY', defaultValue: 'change_me_strong_key', description: 'Şifreleme anahtarı', required: true, secret: true },
+    ],
+    volumes: [
+      { hostPath: './homarr/appdata', containerPath: '/appdata', label: 'Homarr Data' },
+      { hostPath: '/var/run/docker.sock', containerPath: '/var/run/docker.sock:ro', label: 'Docker Socket' },
+    ],
+    suggestedDependencies: [],
+    notes: ['İlk açılışta yönetici hesabı oluşturmanız istenir.'],
+    icon: 'LayoutGrid',
+    color: '#FA5252',
+  },
+  {
+    id: 'actual-budget',
+    name: 'Actual Budget',
+    description: 'Yerel-öncelikli bütçe ve kişisel finans uygulaması — verileriniz tamamen sizde kalır.',
+    category: 'app',
+    dockerImage: 'actualbudget/actual-server',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 5006, default: 5006, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [],
+    volumes: [
+      { hostPath: './actual/data', containerPath: '/data', label: 'Actual Data' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Çok cihazlı senkronizasyon ve banka içe aktarma desteği sunar.'],
+    icon: 'Wallet',
+    color: '#10B981',
+  },
+  {
+    id: 'firefly-iii',
+    name: 'Firefly III',
+    description: 'Kapsamlı kişisel finans yöneticisi — gelir/gider, bütçe, hesap ve raporlama.',
+    category: 'app',
+    dockerImage: 'fireflyiii/core',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8080, default: 8088, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'APP_KEY', defaultValue: 'CHANGE_ME_32_CHARS', description: 'Uygulama anahtarı', required: true, secret: true },
+      { key: 'DB_CONNECTION', defaultValue: 'sqlite', description: 'DB türü (sqlite/pgsql/mysql)', required: false },
+    ],
+    volumes: [
+      { hostPath: './fireflyiii/upload', containerPath: '/var/www/html/storage/upload', label: 'Upload' },
+      { hostPath: './fireflyiii/db', containerPath: '/var/www/html/storage/database', label: 'SQLite DB' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'postgresql', reason: 'Üretim için önerilen veritabanı' },
+    ],
+    notes: ['APP_KEY güvenli ve 32 karakterlik olmalıdır (openssl rand -hex 16).'],
+    icon: 'Coins',
+    color: '#EF4444',
+  },
+  {
+    id: 'karakeep',
+    name: 'Karakeep',
+    description: 'Yapay zekâ destekli yer imi ve içerik arşivi (eski adı Hoarder) — otomatik etiketleme.',
+    category: 'app',
+    dockerImage: 'ghcr.io/karakeep-app/karakeep',
+    defaultTag: 'release',
+    ports: [
+      { internal: 3000, default: 3007, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'NEXTAUTH_SECRET', defaultValue: 'change_me', description: 'Oturum gizli anahtarı', required: true, secret: true },
+      { key: 'MEILI_ADDR', defaultValue: 'http://meilisearch:7700', description: 'Arama motoru adresi', required: false },
+    ],
+    volumes: [
+      { hostPath: './karakeep/data', containerPath: '/data', label: 'Karakeep Data' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'meilisearch', reason: 'Tam metin arama için' },
+    ],
+    notes: ['Kendi OpenAI/Ollama uç noktanızla otomatik etiketleme yapabilir.'],
+    icon: 'Bookmark',
+    color: '#8B5CF6',
+  },
+  {
+    id: 'docmost',
+    name: 'Docmost',
+    description: 'Açık kaynak işbirliği ve wiki platformu — gerçek zamanlı ortak belge düzenleme (Notion alternatifi).',
+    category: 'app',
+    dockerImage: 'docmost/docmost',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 3000, default: 3008, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'APP_URL', defaultValue: 'http://YOUR_SERVER_IP:3008', description: 'Genel URL', required: false },
+      { key: 'APP_SECRET', defaultValue: 'change_me_long_secret', description: 'Uygulama gizli anahtarı', required: true, secret: true },
+      { key: 'DATABASE_URL', defaultValue: 'postgresql://docmost:strong_password@postgres:5432/docmost', description: 'PostgreSQL bağlantı dizesi', required: true },
+    ],
+    volumes: [
+      { hostPath: './docmost/data', containerPath: '/app/data/storage', label: 'Docmost Storage' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'postgresql', reason: 'PostgreSQL veritabanı gerektirir' },
+    ],
+    notes: ['PostgreSQL ve Redis gerektirir.'],
+    icon: 'BookOpen',
+    color: '#0EA5E9',
+  },
+  {
+    id: 'pairdrop',
+    name: 'PairDrop',
+    description: 'Tarayıcıdan tarayıcıya yerel dosya aktarımı (AirDrop benzeri) — kurulum gerektirmez.',
+    category: 'app',
+    dockerImage: 'linuxserver/pairdrop',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 3000, default: 3009, label: 'Web UI', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'User ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Group ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Timezone', required: false },
+      { key: 'RATE_LIMIT', defaultValue: 'false', description: 'Hız sınırı', required: false },
+    ],
+    volumes: [],
+    suggestedDependencies: [],
+    notes: ['HTTPS arkasında çalıştırıldığında cihazlar arası paylaşım daha güvenlidir.'],
+    icon: 'FolderSync',
+    color: '#22D3EE',
+  },
+
+  // ── NETWORK ────────────────────────────────────────────────
+  {
+    id: 'gluetun',
+    name: 'Gluetun',
+    description: 'Konteyner VPN istemcisi — diğer konteynerlerin trafiğini seçilen VPN üzerinden yönlendirir.',
+    category: 'network',
+    dockerImage: 'qmcgaw/gluetun',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8888, default: 8888, label: 'HTTP Proxy', protocol: 'tcp' },
+      { internal: 8000, default: 8000, label: 'Control Server', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'VPN_SERVICE_PROVIDER', defaultValue: 'mullvad', description: 'VPN sağlayıcı', required: true },
+      { key: 'VPN_TYPE', defaultValue: 'wireguard', description: 'VPN türü (openvpn/wireguard)', required: true },
+      { key: 'WIREGUARD_PRIVATE_KEY', defaultValue: 'YOUR_PRIVATE_KEY', description: 'WireGuard anahtarı', required: true, secret: true },
+      { key: 'SERVER_COUNTRIES', defaultValue: 'Netherlands', description: 'Sunucu ülkesi', required: false },
+    ],
+    volumes: [
+      { hostPath: './gluetun', containerPath: '/gluetun', label: 'Gluetun Data' },
+    ],
+    suggestedDependencies: [
+      { moduleId: 'qbittorrent', reason: 'qBittorrent trafiğini VPN üzerinden yönlendirmek için' },
+    ],
+    notes: [
+      'CAP_ADD: NET_ADMIN gerekir.',
+      'qBittorrent gibi konteynerler network_mode: "service:gluetun" ile bağlanmalıdır.',
+    ],
+    icon: 'Shield',
+    color: '#0EA5E9',
+  },
+
+  // ── SECURITY ───────────────────────────────────────────────
+  {
+    id: 'pangolin',
+    name: 'Pangolin',
+    description: 'Ters vekil + kimlik doğrulamalı tünel yöneticisi — servislerinizi güvenle dışa açar.',
+    category: 'security',
+    dockerImage: 'ghcr.io/fosrl/pangolin',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 3000, default: 3010, label: 'Dashboard', protocol: 'tcp' },
+      { internal: 51820, default: 51820, label: 'WireGuard (UDP)', protocol: 'udp' },
+    ],
+    environment: [
+      { key: 'SERVER_SECRET', defaultValue: 'change_me', description: 'Sunucu gizli anahtarı', required: true, secret: true },
+    ],
+    volumes: [
+      { hostPath: './pangolin/config', containerPath: '/app/config', label: 'Pangolin Config' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Genellikle Traefik ve Gerbil ile birlikte kurulur; 443/80 erişimi gerekir.'],
+    icon: 'ShieldCheck',
+    color: '#10B981',
+  },
 ];
 
 export interface MinecraftPlugin {
@@ -3365,6 +3833,24 @@ export const PORT_ALTERNATIVES: Record<number, number[]> = {
   5005: [5006, 5007],
   5003: [5004, 5008],
   9010: [9011, 9012],
+  // 2026 — yeni modüller
+  9696: [9697, 9698],
+  6767: [6768, 6769],
+  8686: [8687, 8688],
+  8181: [8182, 8183],
+  8081: [8082, 8083],
+  8945: [8946, 8947],
+  5001: [5011, 5012],
+  8090: [8190, 8191],
+  2222: [2223, 2224],
+  7575: [7576, 7577],
+  5006: [5016, 5017],
+  8088: [8089, 8093],
+  3007: [3011, 3012],
+  3008: [3013, 3014],
+  3009: [3015, 3016],
+  3010: [3017, 3018],
+  8000: [8001, 8002],
 };
 
 

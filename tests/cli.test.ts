@@ -21,10 +21,10 @@ const cliBin = path.resolve(__dirname, '../bin/xivizley.mjs');
 
 describe('XIVIZLEY Interactive CLI Engine Tests', () => {
 
-  test('Module Catalog Integrity (112+ Apps)', () => {
-    assert(MODULE_CATALOG.length >= 112, `Beklenen en az 112 modül, bulunan: ${MODULE_CATALOG.length}`);
+  test('Module Catalog Integrity (134 Docker Modülü & 130+ Apps)', () => {
+    assert(MODULE_CATALOG.length >= 134, `Beklenen en az 134 modül, bulunan: ${MODULE_CATALOG.length}`);
     const nonOsModules = getAllModules();
-    assert(nonOsModules.length >= 110, `Bağımsız tekil app sayısı >= 110 olmalı, bulunan: ${nonOsModules.length}`);
+    assert(nonOsModules.length >= 130, `Bağımsız tekil app sayısı >= 130 olmalı, bulunan: ${nonOsModules.length}`);
 
     // Verify all standalone container modules have required properties
     for (const mod of nonOsModules) {
@@ -35,11 +35,28 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
       assert(Array.isArray(mod.ports), `Modül ${mod.id} ports dizisi içermeli`);
       assert(Array.isArray(mod.environment), `Modül ${mod.id} environment dizisi içermeli`);
     }
+
+    // Verify the 19 new 2026 modules are present in the catalog
+    const newModuleIds = [
+      'dockge', 'beszel', 'forgejo', 'prowlarr', 'bazarr', 'lidarr',
+      'jellyseerr', 'tautulli', 'metube', 'pinchflat', 'homepage', 'homarr',
+      'actual-budget', 'firefly-iii', 'karakeep', 'docmost', 'pairdrop',
+      'gluetun', 'pangolin'
+    ];
+    for (const id of newModuleIds) {
+      assert(MODULE_CATALOG.some(m => m.id === id), `Yeni modül ${id} katalogda bulunmalı`);
+    }
   });
 
-  test('31 Endüstriyel Şablon Kataloğu Doğrulaması', () => {
-    assert.strictEqual(STACK_TEMPLATES.length, 31, 'Tam olarak 31 endüstriyel şablon bulunmalı');
+  test('33 Endüstriyel Şablon Kataloğu Doğrulaması', () => {
+    assert.strictEqual(STACK_TEMPLATES.length, 33, 'Tam olarak 33 endüstriyel şablon bulunmalı');
     
+    // Verify the 2 new 2026 templates are present
+    const newTemplateIds = ['ultimate-arr-media', 'lightweight-homelab-ops'];
+    for (const tid of newTemplateIds) {
+      assert(STACK_TEMPLATES.some(t => t.id === tid), `Yeni şablon ${tid} katalogda bulunmalı`);
+    }
+
     for (const t of STACK_TEMPLATES) {
       assert(t.id, 'Şablon id içermeli');
       assert(t.title, `Şablon ${t.id} title içermeli`);
@@ -217,5 +234,79 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     assert(categories.some((c) => c.id === 'proxy'), 'Reverse Proxy kategorisi bulunmalı');
     assert(categories.some((c) => c.id === 'tunnel'), 'Tünel kategorisi bulunmalı');
     assert(categories.length >= 9, `En az 9 kategori olmalı, bulunan: ${categories.length}`);
+  });
+
+  test('CLI Doğrudan Kurulum Komutları (dockge, beszel, prowlarr) ve Docker Compose Üretimi', () => {
+    const tmpBase = path.resolve(__dirname, '../dist/tmp_cli_test_' + Date.now());
+    fs.mkdirSync(tmpBase, { recursive: true });
+
+    try {
+      // 1. Dockge
+      const dockgeDir = path.join(tmpBase, 'dockge');
+      execSync(`node "${cliBin}" install dockge -y --dir "${dockgeDir}" --no-start`);
+      const dockgeComposePath = path.join(dockgeDir, 'docker-compose.yml');
+      assert(fs.existsSync(dockgeComposePath), 'Dockge docker-compose.yml üretilmeli');
+      const dockgeYaml = fs.readFileSync(dockgeComposePath, 'utf8');
+      const parsedDockge = load(dockgeYaml) as any;
+      assert(parsedDockge.services.dockge, 'Dockge servisi compose içinde tanımlı olmalı');
+      assert(parsedDockge.services.dockge.ports.includes('5001:5001'), 'Dockge varsayılan port 5001:5001 atanmalı');
+
+      // 2. Beszel
+      const beszelDir = path.join(tmpBase, 'beszel');
+      execSync(`node "${cliBin}" install beszel -y --dir "${beszelDir}" --no-start`);
+      const beszelComposePath = path.join(beszelDir, 'docker-compose.yml');
+      assert(fs.existsSync(beszelComposePath), 'Beszel docker-compose.yml üretilmeli');
+      const beszelYaml = fs.readFileSync(beszelComposePath, 'utf8');
+      const parsedBeszel = load(beszelYaml) as any;
+      assert(parsedBeszel.services.beszel, 'Beszel servisi compose içinde tanımlı olmalı');
+      assert(parsedBeszel.services.beszel.ports.includes('8090:8090'), 'Beszel varsayılan port 8090:8090 atanmalı');
+
+      // 3. Prowlarr
+      const prowlarrDir = path.join(tmpBase, 'prowlarr');
+      execSync(`node "${cliBin}" install prowlarr -y --dir "${prowlarrDir}" --no-start`);
+      const prowlarrComposePath = path.join(prowlarrDir, 'docker-compose.yml');
+      assert(fs.existsSync(prowlarrComposePath), 'Prowlarr docker-compose.yml üretilmeli');
+      const prowlarrYaml = fs.readFileSync(prowlarrComposePath, 'utf8');
+      const parsedProwlarr = load(prowlarrYaml) as any;
+      assert(parsedProwlarr.services.prowlarr, 'Prowlarr servisi compose içinde tanımlı olmalı');
+      assert(parsedProwlarr.services.prowlarr.ports.includes('9696:9696'), 'Prowlarr varsayılan port 9696:9696 atanmalı');
+    } finally {
+      if (fs.existsSync(tmpBase)) {
+        fs.rmSync(tmpBase, { recursive: true, force: true });
+      }
+    }
+  });
+
+  test('Yeni Modüller için Port Çakışma ve Alternatif Port Tahsisi (PORT_ALTERNATIVES)', () => {
+    const dockge = getModule('dockge');
+    const beszel = getModule('beszel');
+    const prowlarr = getModule('prowlarr');
+    assert(dockge && beszel && prowlarr, 'Dockge, Beszel ve Prowlarr modülleri katalogda bulunmalı');
+
+    // Simulate already allocated ports on the host
+    const allocated = new Set<number>([5001, 8090, 9696]);
+    const res = resolvePortConflicts([dockge, beszel, prowlarr], allocated);
+
+    assert.strictEqual(res.conflictsDetected, true, 'Port çakışması tespit edilmeli');
+    assert.strictEqual(res.resolvedMappings.get('dockge:5001')?.host, 5011, 'Dockge çakışmasında 5011 alternatif portu atanmalı');
+    assert.strictEqual(res.resolvedMappings.get('beszel:8090')?.host, 8190, 'Beszel çakışmasında 8190 alternatif portu atanmalı');
+    assert.strictEqual(res.resolvedMappings.get('prowlarr:9696')?.host, 9697, 'Prowlarr çakışmasında 9697 alternatif portu atanmalı');
+  });
+
+  test('Yeni 2026 Endüstriyel Şablonların Docker Compose İçeriği (ultimate-arr-media & lightweight-homelab-ops)', () => {
+    const arrTemplate = getTemplate('ultimate-arr-media');
+    assert(arrTemplate, 'ultimate-arr-media şablonu bulunmalı');
+    const parsedArr = load(arrTemplate.composeSnippet) as any;
+    assert(parsedArr.services.jellyfin, 'Jellyfin servisi içermeli');
+    assert(parsedArr.services.prowlarr, 'Prowlarr servisi içermeli');
+    assert(parsedArr.services.bazarr, 'Bazarr servisi içermeli');
+    assert(parsedArr.services.gluetun, 'Gluetun VPN servisi içermeli');
+
+    const opsTemplate = getTemplate('lightweight-homelab-ops');
+    assert(opsTemplate, 'lightweight-homelab-ops şablonu bulunmalı');
+    const parsedOps = load(opsTemplate.composeSnippet) as any;
+    assert(parsedOps.services.dockge, 'Dockge servisi içermeli');
+    assert(parsedOps.services.beszel, 'Beszel servisi içermeli');
+    assert(parsedOps.services.homarr, 'Homarr servisi içermeli');
   });
 });
