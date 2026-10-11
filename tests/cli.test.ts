@@ -14,6 +14,7 @@ import { buildComposeFromModules, resolvePortConflicts } from '../dist/utils/com
 import { buildSuiteCompose, isIpAddress } from '../dist/ecosystem/suite.js';
 import { getSystemHealth, isPortInUse } from '../dist/utils/system.js';
 import fs from 'node:fs';
+import net from 'node:net';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -236,14 +237,14 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     assert(categories.length >= 9, `En az 9 kategori olmalı, bulunan: ${categories.length}`);
   });
 
-  test('CLI Doğrudan Kurulum Komutları (dockge, beszel, prowlarr) ve Docker Compose Üretimi', () => {
+  test('CLI Doğrudan Kurulum Komutları (dockge, beszel, prowlarr) ve Docker Compose Üretimi', async () => {
     const tmpBase = path.resolve(__dirname, '../dist/tmp_cli_test_' + Date.now());
     fs.mkdirSync(tmpBase, { recursive: true });
 
     try {
-      // 1. Dockge
+      // 1. Dockge - Direct invocation without flags in pipe mode
       const dockgeDir = path.join(tmpBase, 'dockge');
-      execSync(`node "${cliBin}" install dockge -y --dir "${dockgeDir}" --no-start`);
+      execSync(`node "${cliBin}" install dockge --dir "${dockgeDir}" --no-start`);
       const dockgeComposePath = path.join(dockgeDir, 'docker-compose.yml');
       assert(fs.existsSync(dockgeComposePath), 'Dockge docker-compose.yml üretilmeli');
       const dockgeYaml = fs.readFileSync(dockgeComposePath, 'utf8');
@@ -251,9 +252,9 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
       assert(parsedDockge.services.dockge, 'Dockge servisi compose içinde tanımlı olmalı');
       assert(parsedDockge.services.dockge.ports.includes('5001:5001'), 'Dockge varsayılan port 5001:5001 atanmalı');
 
-      // 2. Beszel
+      // 2. Beszel - Direct invocation
       const beszelDir = path.join(tmpBase, 'beszel');
-      execSync(`node "${cliBin}" install beszel -y --dir "${beszelDir}" --no-start`);
+      execSync(`node "${cliBin}" install beszel --dir "${beszelDir}" --no-start`);
       const beszelComposePath = path.join(beszelDir, 'docker-compose.yml');
       assert(fs.existsSync(beszelComposePath), 'Beszel docker-compose.yml üretilmeli');
       const beszelYaml = fs.readFileSync(beszelComposePath, 'utf8');
@@ -261,15 +262,50 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
       assert(parsedBeszel.services.beszel, 'Beszel servisi compose içinde tanımlı olmalı');
       assert(parsedBeszel.services.beszel.ports.includes('8090:8090'), 'Beszel varsayılan port 8090:8090 atanmalı');
 
-      // 3. Prowlarr
+      // 3. Prowlarr - Direct invocation
       const prowlarrDir = path.join(tmpBase, 'prowlarr');
-      execSync(`node "${cliBin}" install prowlarr -y --dir "${prowlarrDir}" --no-start`);
+      execSync(`node "${cliBin}" install prowlarr --dir "${prowlarrDir}" --no-start`);
       const prowlarrComposePath = path.join(prowlarrDir, 'docker-compose.yml');
       assert(fs.existsSync(prowlarrComposePath), 'Prowlarr docker-compose.yml üretilmeli');
       const prowlarrYaml = fs.readFileSync(prowlarrComposePath, 'utf8');
       const parsedProwlarr = load(prowlarrYaml) as any;
       assert(parsedProwlarr.services.prowlarr, 'Prowlarr servisi compose içinde tanımlı olmalı');
       assert(parsedProwlarr.services.prowlarr.ports.includes('9696:9696'), 'Prowlarr varsayılan port 9696:9696 atanmalı');
+
+      // 4. Host Port Çakışma Radarı Testi: Portlar kullanımdayken alternatif port tahsisi
+      const server5001 = net.createServer().listen(5001, '127.0.0.1');
+      const server8090 = net.createServer().listen(8090, '127.0.0.1');
+      const server9696 = net.createServer().listen(9696, '127.0.0.1');
+
+      try {
+        // Wait for sockets to bind
+        await new Promise((r) => setTimeout(r, 100));
+
+        // Dockge çakışmasında 5011 atanmalı
+        const dockgeAltDir = path.join(tmpBase, 'dockge-alt');
+        execSync(`node "${cliBin}" install dockge --dir "${dockgeAltDir}" --no-start -y`);
+        const dockgeAltYaml = fs.readFileSync(path.join(dockgeAltDir, 'docker-compose.yml'), 'utf8');
+        const parsedDockgeAlt = load(dockgeAltYaml) as any;
+        assert(parsedDockgeAlt.services.dockge.ports.includes('5011:5001'), 'Dockge port 5001 çakıştığında alternatif 5011:5001 atanmalı');
+
+        // Beszel çakışmasında 8190 atanmalı
+        const beszelAltDir = path.join(tmpBase, 'beszel-alt');
+        execSync(`node "${cliBin}" install beszel --dir "${beszelAltDir}" --no-start -y`);
+        const beszelAltYaml = fs.readFileSync(path.join(beszelAltDir, 'docker-compose.yml'), 'utf8');
+        const parsedBeszelAlt = load(beszelAltYaml) as any;
+        assert(parsedBeszelAlt.services.beszel.ports.includes('8190:8090'), 'Beszel port 8090 çakıştığında alternatif 8190:8090 atanmalı');
+
+        // Prowlarr çakışmasında 9697 atanmalı
+        const prowlarrAltDir = path.join(tmpBase, 'prowlarr-alt');
+        execSync(`node "${cliBin}" install prowlarr --dir "${prowlarrAltDir}" --no-start -y`);
+        const prowlarrAltYaml = fs.readFileSync(path.join(prowlarrAltDir, 'docker-compose.yml'), 'utf8');
+        const parsedProwlarrAlt = load(prowlarrAltYaml) as any;
+        assert(parsedProwlarrAlt.services.prowlarr.ports.includes('9697:9696'), 'Prowlarr port 9696 çakıştığında alternatif 9697:9696 atanmalı');
+      } finally {
+        server5001.close();
+        server8090.close();
+        server9696.close();
+      }
     } finally {
       if (fs.existsSync(tmpBase)) {
         fs.rmSync(tmpBase, { recursive: true, force: true });
@@ -283,7 +319,7 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     const prowlarr = getModule('prowlarr');
     assert(dockge && beszel && prowlarr, 'Dockge, Beszel ve Prowlarr modülleri katalogda bulunmalı');
 
-    // Simulate already allocated ports on the host
+    // Simulate already allocated ports on the host with resolvePortConflicts
     const allocated = new Set<number>([5001, 8090, 9696]);
     const res = resolvePortConflicts([dockge, beszel, prowlarr], allocated);
 
@@ -291,6 +327,10 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     assert.strictEqual(res.resolvedMappings.get('dockge:5001')?.host, 5011, 'Dockge çakışmasında 5011 alternatif portu atanmalı');
     assert.strictEqual(res.resolvedMappings.get('beszel:8090')?.host, 8190, 'Beszel çakışmasında 8190 alternatif portu atanmalı');
     assert.strictEqual(res.resolvedMappings.get('prowlarr:9696')?.host, 9697, 'Prowlarr çakışmasında 9697 alternatif portu atanmalı');
+
+    // Verify buildComposeFromModules respects allocatedPorts option
+    const { compose: composeDockge } = buildComposeFromModules([dockge], { allocatedPorts: new Set([5001]) });
+    assert(composeDockge.services.dockge.ports?.includes('5011:5001'), 'buildComposeFromModules allocatedPorts seçeneği ile 5011 atamalı');
   });
 
   test('Yeni 2026 Endüstriyel Şablonların Docker Compose İçeriği (ultimate-arr-media & lightweight-homelab-ops)', () => {

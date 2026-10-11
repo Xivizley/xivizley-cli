@@ -132,6 +132,16 @@ export function saveStackFiles(
 
 export function executeDockerCompose(targetDir: string, flags = 'up -d'): Promise<{ success: boolean; output: string }> {
   return new Promise((resolve) => {
+    const health = getSystemHealth();
+    if (!health.dockerInstalled) {
+      resolve({ success: false, output: 'Docker sistemde kurulu değil veya PATH üzerinde bulunamadı. Lütfen Docker engine kurun.' });
+      return;
+    }
+    if (!health.dockerRunning) {
+      resolve({ success: false, output: 'Docker servisi/daemon aktif değil veya çalışmıyor. Lütfen Docker engine başlatın.' });
+      return;
+    }
+
     exec(`docker compose ${flags}`, { cwd: targetDir }, (error, stdout, stderr) => {
       if (error) {
         resolve({ success: false, output: stderr || stdout || error.message });

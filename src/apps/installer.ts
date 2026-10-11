@@ -26,10 +26,12 @@ export async function promptSingleAppConfig(mod: ModuleDefinition, options: Inst
   }
 
   // Pre-flight port check
+  const hostAllocatedPorts = new Set<number>();
   for (const portDef of mod.ports) {
     const inUse = await isPortInUse(portDef.default);
     if (inUse) {
-      console.log(pc.yellow(`  ⚠️ Uyarı: Port ${portDef.default} şu anda sisteminizde kullanımda görünüyor!`));
+      hostAllocatedPorts.add(portDef.default);
+      console.log(pc.yellow(`  ⚠️ Uyarı: Port ${portDef.default} şu anda sisteminizde kullanımda görünüyor! Port radarı alternatif porta yönlendirecek.`));
     }
   }
 
@@ -93,6 +95,7 @@ export async function promptSingleAppConfig(mod: ModuleDefinition, options: Inst
   const { yamlString, portLog } = buildComposeFromModules([mod], {
     portOverrides: customPorts,
     customEnv: { [mod.id]: customEnv },
+    allocatedPorts: hostAllocatedPorts,
   });
 
   // Generate .env
@@ -134,7 +137,9 @@ echo "✅ ${mod.name} başarıyla ayağa kalktı!"
   );
 
   let shouldStart = false;
-  if (isNonInteractive) {
+  if (options.start === false) {
+    shouldStart = false;
+  } else if (isNonInteractive) {
     shouldStart = Boolean(options.start === true);
   } else {
     const confirmStart = await p.confirm({
@@ -181,7 +186,19 @@ export async function promptMultiAppComposer(selectedModules: ModuleDefinition[]
   const s = p.spinner();
   s.start('Otomatik port çakışma radarı çalıştırılıyor ve Docker Compose üretiliyor...');
 
-  const { yamlString, portLog } = buildComposeFromModules(selectedModules);
+  const hostAllocatedPorts = new Set<number>();
+  for (const mod of selectedModules) {
+    for (const portDef of mod.ports) {
+      const inUse = await isPortInUse(portDef.default);
+      if (inUse) {
+        hostAllocatedPorts.add(portDef.default);
+      }
+    }
+  }
+
+  const { yamlString, portLog } = buildComposeFromModules(selectedModules, {
+    allocatedPorts: hostAllocatedPorts,
+  });
 
   let envContent = `# XIVIZLEY Multi-Service Stack\n`;
   for (const mod of selectedModules) {
