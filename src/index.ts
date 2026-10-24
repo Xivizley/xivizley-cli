@@ -24,12 +24,12 @@ export async function launchInteractiveTUI(): Promise<void> {
       },
       {
         value: 'apps',
-        label: '📦 Tekil Uygulama Mağazası (134 Docker Modülü)',
+        label: '📦 Tekil Uygulama Mağazası (150 Docker Modülü)',
         hint: 'Arama, kategoriler, tekil ve çoklu port çakışmasız kurulum',
       },
       {
         value: 'templates',
-        label: '🌟 33 Endüstriyel Şablon Kataloğu (Full Stacks)',
+        label: '🌟 35 Endüstriyel Şablon Kataloğu (Full Stacks)',
         hint: 'DIN 40719 standartlarında AI, E-Ticaret, Medya, Oyun ve DevOps mimarileri',
       },
       {
@@ -115,7 +115,7 @@ export function createCli(): Command {
 
   program
     .command('apps')
-    .description('📦 134 Docker Modülü Tekil Uygulama Mağazasını açar')
+    .description('📦 150 Docker Modülü Tekil Uygulama Mağazasını açar')
     .action(async () => {
       printBanner();
       await runStandaloneAppStore();
@@ -124,7 +124,7 @@ export function createCli(): Command {
   program
     .command('templates [id]')
     .alias('template')
-    .description('🌟 33 Endüstriyel Şablon Kataloğunu açar veya belirtilen şablonu kurar')
+    .description('🌟 35 Endüstriyel Şablon Kataloğunu açar veya belirtilen şablonu kurar')
     .option('-y, --yes', 'Varsayılan ayarlar ile onay istemeden otomatik kur')
     .option('-d, --dir <dir>', 'Hedef kurulum dizini')
     .option('--no-start', 'Konteyneri otomatik başlatma, yalnızca compose ve konfigürasyon dosyalarını üret')

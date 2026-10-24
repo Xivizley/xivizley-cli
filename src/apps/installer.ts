@@ -266,7 +266,7 @@ echo "✅ Tüm servisler başarıyla ayağa kalktı!"
 }
 
 export async function runStandaloneAppStore(): Promise<void> {
-  p.intro(formatBadge('📦 XIVIZLEY TEKİL UYGULAMA MAĞAZASI (134 Docker Modülü)', 'violet'));
+  p.intro(formatBadge('📦 XIVIZLEY TEKİL UYGULAMA MAĞAZASI (150 Docker Modülü)', 'violet'));
 
   const mode = await p.select({
     message: 'Uygulamaları nasıl bulmak istersiniz?',

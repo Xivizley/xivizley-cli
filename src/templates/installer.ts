@@ -122,7 +122,7 @@ docker compose up -d
 }
 
 export async function runTemplateCatalog(): Promise<void> {
-  p.intro(formatBadge('🌟 33 ENDÜSTRİYEL ŞABLON KATALOĞU (Full Stacks)', 'violet'));
+  p.intro(formatBadge('🌟 35 ENDÜSTRİYEL ŞABLON KATALOĞU (Full Stacks)', 'violet'));
 
   const catOptions = TEMPLATE_CATEGORIES.map((c) => ({
     value: c.id,
@@ -165,6 +165,6 @@ export async function runDirectTemplateInstall(templateId: string, options: Depl
     await deployTemplate(t, options);
   } else {
     console.log(pc.red(`❌ Hata: "${templateId}" adında bir şablon bulunamadı.`));
-    console.log(pc.cyan('Tüm 33 şablonu listelemek için: xivizley\n'));
+    console.log(pc.cyan('Tüm 35 şablonu listelemek için: xivizley\n'));
   }
 }

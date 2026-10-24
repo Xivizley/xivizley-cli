@@ -22,10 +22,10 @@ const cliBin = path.resolve(__dirname, '../bin/xivizley.mjs');
 
 describe('XIVIZLEY Interactive CLI Engine Tests', () => {
 
-  test('Module Catalog Integrity (134 Docker Modülü & 130+ Apps)', () => {
-    assert(MODULE_CATALOG.length >= 134, `Beklenen en az 134 modül, bulunan: ${MODULE_CATALOG.length}`);
+  test('Module Catalog Integrity (150 Docker Modülü & 146+ Apps)', () => {
+    assert(MODULE_CATALOG.length >= 150, `Beklenen en az 150 modül, bulunan: ${MODULE_CATALOG.length}`);
     const nonOsModules = getAllModules();
-    assert(nonOsModules.length >= 130, `Bağımsız tekil app sayısı >= 130 olmalı, bulunan: ${nonOsModules.length}`);
+    assert(nonOsModules.length >= 146, `Bağımsız tekil app sayısı >= 146 olmalı, bulunan: ${nonOsModules.length}`);
 
     // Verify all standalone container modules have required properties
     for (const mod of nonOsModules) {
@@ -37,23 +37,25 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
       assert(Array.isArray(mod.environment), `Modül ${mod.id} environment dizisi içermeli`);
     }
 
-    // Verify the 19 new 2026 modules are present in the catalog
+    // Verify the new 2026 modules are present in the catalog
     const newModuleIds = [
       'dockge', 'beszel', 'forgejo', 'prowlarr', 'bazarr', 'lidarr',
       'jellyseerr', 'tautulli', 'metube', 'pinchflat', 'homepage', 'homarr',
       'actual-budget', 'firefly-iii', 'karakeep', 'docmost', 'pairdrop',
-      'gluetun', 'pangolin'
+      'gluetun', 'pangolin', 'librechat', 'qdrant', 'memos', 'freshrss',
+      'syncthing', 'authelia', 'ntfy', 'gotify', 'sabnzbd', 'readarr',
+      'komga', 'slskd', 'scrutiny', 'gatus', 'factorio-server', 'enshrouded-server'
     ];
     for (const id of newModuleIds) {
       assert(MODULE_CATALOG.some(m => m.id === id), `Yeni modül ${id} katalogda bulunmalı`);
     }
   });
 
-  test('33 Endüstriyel Şablon Kataloğu Doğrulaması', () => {
-    assert.strictEqual(STACK_TEMPLATES.length, 33, 'Tam olarak 33 endüstriyel şablon bulunmalı');
+  test('35 Endüstriyel Şablon Kataloğu Doğrulaması', () => {
+    assert.strictEqual(STACK_TEMPLATES.length, 35, 'Tam olarak 35 endüstriyel şablon bulunmalı');
     
-    // Verify the 2 new 2026 templates are present
-    const newTemplateIds = ['ultimate-arr-media', 'lightweight-homelab-ops'];
+    // Verify the new 2026 templates are present
+    const newTemplateIds = ['ultimate-arr-media', 'lightweight-homelab-ops', 'ai-rag-vector-stack', 'homelab-silent-sentinel'];
     for (const tid of newTemplateIds) {
       assert(STACK_TEMPLATES.some(t => t.id === tid), `Yeni şablon ${tid} katalogda bulunmalı`);
     }

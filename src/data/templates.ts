@@ -1290,6 +1290,102 @@ services:
     environment:
       - SECRET_ENCRYPTION_KEY=change_me_strong_key`,
   },
+
+  // ═════════════════════════════════════════════════════════════
+  // YENİ (2026) — YEREL AI & RAG VEKTÖR STÜDYOSU
+  // ═════════════════════════════════════════════════════════════
+  {
+    id: 'ai-rag-vector-stack',
+    title: 'Yerel AI & RAG Vektör Stüdyosu',
+    subtitle: 'LibreChat + Ollama + Qdrant',
+    description: 'Kendi dokümanlarınızı semantik aramayla konuşturan özel yapay zeka hattı. Qdrant vektör veritabanı, Ollama açık ağırlıklı dil modelleri ve LibreChat çoklu model arayüzü tek compose çatısında.',
+    category: 'ai',
+    isPro: true,
+    difficulty: 'Orta',
+    minRamGB: 8,
+    icon: '🧠',
+    color: '#10A37F',
+    tags: ['LibreChat', 'Ollama', 'Qdrant', 'RAG', 'AI', 'Vektör Arama'],
+    moduleIds: ['librechat', 'ollama', 'qdrant'],
+    composeSnippet: `services:
+  librechat:
+    image: ghcr.io/danny-avila/librechat:latest
+    restart: unless-stopped
+    ports: ["3080:3080"]
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3080
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - ./librechat/images:/app/client/public/images
+      - ./librechat/librechat.yaml:/app/librechat.yaml
+    depends_on:
+      - ollama
+      - qdrant
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    ports: ["11434:11434"]
+    volumes:
+      - ./ollama/models:/root/.ollama
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports: ["6333:6333", "6334:6334"]
+    volumes:
+      - ./qdrant/storage:/qdrant/storage`,
+  },
+  // ═════════════════════════════════════════════════════════════
+  // YENİ (2026) — SESSİZ HOMELAB NÖBETÇİSİ & DİSK RADARI
+  // ═════════════════════════════════════════════════════════════
+  {
+    id: 'homelab-silent-sentinel',
+    title: 'Sessiz Homelab Nöbetçisi & Disk Radarı',
+    subtitle: 'Gatus + Scrutiny + Ntfy + Beszel',
+    description: 'Sıfır karmaşıklıkla sunucu sağlığı, disk S.M.A.R.T ömrü ve anlık push bildirimleri. Servis arızalarını Gatus ile izler, Ntfy ile cep telefonunuza anında iletir.',
+    category: 'devops',
+    isPro: false,
+    difficulty: 'Kolay',
+    minRamGB: 2,
+    icon: '🛡️',
+    color: '#EF4444',
+    tags: ['Gatus', 'Scrutiny', 'Ntfy', 'Beszel', 'İzleme', 'S.M.A.R.T', 'Alarm'],
+    moduleIds: ['gatus', 'scrutiny', 'ntfy', 'beszel'],
+    composeSnippet: `services:
+  gatus:
+    image: twinproduction/gatus:latest
+    restart: unless-stopped
+    ports: ["8089:8080"]
+    volumes:
+      - ./gatus/config:/config
+
+  scrutiny:
+    image: ghcr.io/analogj/scrutiny:master-omnibus
+    restart: unless-stopped
+    ports: ["8088:8080"]
+    volumes:
+      - /run/udev:/run/udev:ro
+      - ./scrutiny/config:/opt/scrutiny/config
+      - ./scrutiny/influxdb:/opt/scrutiny/influxdb
+
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    restart: unless-stopped
+    ports: ["8086:80"]
+    volumes:
+      - ./ntfy/cache:/var/cache/ntfy
+      - ./ntfy/config:/etc/ntfy
+
+  beszel:
+    image: henrygd/beszel:latest
+    restart: unless-stopped
+    ports: ["8090:8090"]
+    volumes:
+      - ./beszel/beszel_data:/beszel_data
+      - /var/run/docker.sock:/var/run/docker.sock:ro`,
+  },
 ];
 
 // ─── Legacy ArchitectureTemplate & PREDEFINED_TEMPLATES ───────
