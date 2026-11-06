@@ -1,6 +1,6 @@
 {
   "name": "xivizley",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "XIVIZLEY Industrial Server & Cloud Ecosystem Interactive CLI Engine",
   "type": "module",
   "main": "./dist/index.js",
