@@ -7,7 +7,7 @@
 // Never fetch this data from the database — keep it static.
 // ============================================================
 
-// XIVIZLEY CLI Embedded Module Catalog (134 Industrial Applications)
+// XIVIZLEY CLI Embedded Module Catalog (150 Industrial Applications)
 export type SettingType = 'boolean' | 'string' | 'select' | 'number' | 'text';
 
 export interface SettingOption {
@@ -3446,6 +3446,366 @@ export const MODULE_CATALOG: ModuleDefinition[] = [
     icon: 'ShieldCheck',
     color: '#10B981',
   },
+
+  // ── AI & VECTOR DATABASE ────────────────────────────────────
+  {
+    id: 'librechat',
+    name: 'LibreChat',
+    description: 'Tüm AI modellerini (Ollama, OpenAI, Claude, Mistral) tek arayüzde birleştiren gelişmiş açık kaynak ChatGPT klonu.',
+    category: 'app',
+    dockerImage: 'ghcr.io/danny-avila/librechat',
+    defaultTag: 'latest',
+    ports: [{ internal: 3080, default: 3080, label: 'Web UI', protocol: 'tcp' }],
+    environment: [
+      { key: 'HOST', defaultValue: '0.0.0.0', description: 'Bağlantı hostu', required: true },
+      { key: 'PORT', defaultValue: '3080', description: 'Web UI portu', required: true },
+      { key: 'MONGO_URI', defaultValue: 'mongodb://mongodb:27017/LibreChat', description: 'MongoDB bağlantı adresi', required: false },
+    ],
+    volumes: [
+      { hostPath: './librechat/images', containerPath: '/app/client/public/images', label: 'Resim Deposu' },
+      { hostPath: './librechat/config.yaml', containerPath: '/app/librechat.yaml', label: 'LibreChat Ayarları' },
+    ],
+    suggestedDependencies: [{ moduleId: 'mongodb', reason: 'Kullanıcı geçmişi ve sohbet oturumları için' }],
+    notes: ['Ollama, LocalAI veya harici AI API anahtarlarıyla çoklu kullanıcı desteği sunar.'],
+    icon: 'Bot',
+    color: '#10A37F',
+    resources: { ramMB: 512, cpuCores: 1, diskGB: 5 },
+  },
+  {
+    id: 'qdrant',
+    name: 'Qdrant Vector DB',
+    description: 'AI RAG (Retrieval-Augmented Generation) ve semantik arama için yüksek performanslı Rust tabanlı vektör veritabanı.',
+    category: 'storage',
+    dockerImage: 'qdrant/qdrant',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 6333, default: 6333, label: 'REST API', protocol: 'tcp' },
+      { internal: 6334, default: 6334, label: 'gRPC API', protocol: 'tcp' },
+    ],
+    environment: [],
+    volumes: [
+      { hostPath: './qdrant/storage', containerPath: '/qdrant/storage', label: 'Vektör Veri Deposu' },
+    ],
+    suggestedDependencies: [{ moduleId: 'ollama', reason: 'Vektör gömme (embeddings) ve RAG sorguları için' }],
+    notes: ['Ollama ve LibreChat ile yerel doküman arama ve RAG boru hatları kurmak için idealdir.'],
+    icon: 'Database',
+    color: '#DC2626',
+    resources: { ramMB: 512, cpuCores: 1, diskGB: 10 },
+  },
+
+  // ── PRODUCTIVITY & NOTES ────────────────────────────────────
+  {
+    id: 'memos',
+    name: 'Memos',
+    description: 'Hafif, gizlilik odaklı, Twitter tarzı açık kaynak kişisel not alma ve mikroblog servisi.',
+    category: 'app',
+    dockerImage: 'neosmemo/memos',
+    defaultTag: 'stable',
+    ports: [{ internal: 5230, default: 5230, label: 'Web UI', protocol: 'tcp' }],
+    environment: [],
+    volumes: [
+      { hostPath: './memos/data', containerPath: '/var/opt/memos', label: 'Memos Veritabanı' },
+    ],
+    suggestedDependencies: [],
+    notes: ['SQLite dahili gelir; sıfır konfigürasyonla anında çalışır.'],
+    icon: 'Bookmark',
+    color: '#3B82F6',
+    resources: { ramMB: 128, cpuCores: 0.5, diskGB: 2 },
+  },
+  {
+    id: 'freshrss',
+    name: 'FreshRSS',
+    description: 'Kendi sunucunuzda barındırabileceğiniz hızlı, güçlü ve esnek RSS / Atom haber ve içerik toplayıcı.',
+    category: 'app',
+    dockerImage: 'freshrss/freshrss',
+    defaultTag: 'latest',
+    ports: [{ internal: 80, default: 8085, label: 'Web UI', protocol: 'tcp' }],
+    environment: [
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Zaman dilimi', required: false },
+      { key: 'CRON_MIN', defaultValue: '3,33', description: 'Otomatik besleme güncelleme sıklığı', required: false },
+    ],
+    volumes: [
+      { hostPath: './freshrss/data', containerPath: '/var/www/FreshRSS/data', label: 'FreshRSS Verileri' },
+      { hostPath: './freshrss/extensions', containerPath: '/var/www/FreshRSS/extensions', label: 'Eklentiler' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Mobil RSS okuyucu uygulamalarıyla (NetNewsWire, Reeder, Feedly API) tam uyumludur.'],
+    icon: 'Globe',
+    color: '#0284C7',
+    resources: { ramMB: 256, cpuCores: 0.5, diskGB: 2 },
+  },
+
+  // ── STORAGE & SYNC ──────────────────────────────────────────
+  {
+    id: 'syncthing',
+    name: 'Syncthing',
+    description: 'Merkezi sunucuya ihtiyaç duymadan cihazlar arasında güvenli, şifreli ve sürekli eşitleme yapan P2P dosya senkronizasyonu.',
+    category: 'storage',
+    dockerImage: 'syncthing/syncthing',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 8384, default: 8384, label: 'Web GUI', protocol: 'tcp' },
+      { internal: 22000, default: 22000, label: 'Sync Protokolü (TCP/UDP)', protocol: 'both' },
+      { internal: 21027, default: 21027, label: 'Yerel Keşif (UDP)', protocol: 'udp' },
+    ],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'Kullanıcı ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Grup ID', required: false },
+    ],
+    volumes: [
+      { hostPath: './syncthing/data', containerPath: '/var/syncthing', label: 'Senkron Klasörü' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Bulut şirketlerine ihtiyaç duymadan bilgisayar, telefon ve VDS arasında tam gizlilikle dosya senkronlar.'],
+    icon: 'FolderSync',
+    color: '#10B981',
+    resources: { ramMB: 256, cpuCores: 0.5, diskGB: 10 },
+  },
+
+  // ── SECURITY & GATEWAY ──────────────────────────────────────
+  {
+    id: 'authelia',
+    name: 'Authelia',
+    description: 'Ters vekiller (Nginx, Traefik, Caddy) için 2FA/MFA, tek oturum açma (SSO) ve erişim kontrol kapısı.',
+    category: 'security',
+    dockerImage: 'authelia/authelia',
+    defaultTag: 'latest',
+    ports: [{ internal: 9091, default: 9091, label: 'Kimlik Portalı', protocol: 'tcp' }],
+    environment: [
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Zaman dilimi', required: false },
+    ],
+    volumes: [
+      { hostPath: './authelia/config', containerPath: '/config', label: 'Authelia Yapılandırması' },
+    ],
+    suggestedDependencies: [{ moduleId: 'redis', reason: 'Oturum önbelleği için (isteğe bağlı)' }],
+    notes: ['Homelab servislerinin önüne tek tıkla parola ve TOTP/WebAuthn iki faktörlü güvenlik ekler.'],
+    icon: 'ShieldCheck',
+    color: '#6366F1',
+    resources: { ramMB: 256, cpuCores: 0.5, diskGB: 1 },
+  },
+
+  // ── DEVOPS & NOTIFICATIONS ──────────────────────────────────
+  {
+    id: 'ntfy',
+    name: 'Ntfy',
+    description: 'Basit bir HTTP isteğiyle (curl/POST) telefonunuza veya masaüstünüze anlık push bildirim gönderen açık kaynak bildirim servisi.',
+    category: 'network',
+    dockerImage: 'binwiederhier/ntfy',
+    defaultTag: 'latest',
+    ports: [{ internal: 80, default: 8086, label: 'HTTP Bildirim API', protocol: 'tcp' }],
+    environment: [],
+    volumes: [
+      { hostPath: './ntfy/cache', containerPath: '/var/cache/ntfy', label: 'Bildirim Önbelleği' },
+      { hostPath: './ntfy/config', containerPath: '/etc/ntfy', label: 'Yapılandırma' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Yedekleme ve çökme durumlarında sunucunuzdan anında telefonunuza push mesaj göndermek için harikadır.'],
+    icon: 'Activity',
+    color: '#3B82F6',
+    resources: { ramMB: 128, cpuCores: 0.2, diskGB: 2 },
+  },
+  {
+    id: 'gotify',
+    name: 'Gotify',
+    description: 'Kendi sunucunuzda çalışan, WebSocket tabanlı, hafif ve hızlı push bildirim sunucusu.',
+    category: 'network',
+    dockerImage: 'gotify/server',
+    defaultTag: 'latest',
+    ports: [{ internal: 80, default: 8092, label: 'Web UI & API', protocol: 'tcp' }],
+    environment: [
+      { key: 'GOTIFY_DEFAULTUSER_PASS', defaultValue: 'admin', description: 'Yönetici parolası', required: true, secret: true },
+    ],
+    volumes: [
+      { hostPath: './gotify/data', containerPath: '/app/data', label: 'Gotify Veritabanı' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Android uygulaması ve REST API ile sunucu alarmlarını telefonunuza saniyeler içinde iletir.'],
+    icon: 'Activity',
+    color: '#0284C7',
+    resources: { ramMB: 128, cpuCores: 0.2, diskGB: 1 },
+  },
+
+  // ── MEDIA & DOWNLOADERS ─────────────────────────────────────
+  {
+    id: 'sabnzbd',
+    name: 'SABnzbd',
+    description: 'Usenet ikili haber grupları için otomatik, yüksek hızlı ve kullanımı kolay açık kaynak indirme istemcisi.',
+    category: 'media',
+    dockerImage: 'lscr.io/linuxserver/sabnzbd',
+    defaultTag: 'latest',
+    ports: [{ internal: 8080, default: 8087, label: 'Web UI', protocol: 'tcp' }],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'Kullanıcı ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Grup ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Zaman dilimi', required: false },
+    ],
+    volumes: [
+      { hostPath: './sabnzbd/config', containerPath: '/config', label: 'Yapılandırma' },
+      { hostPath: './sabnzbd/downloads', containerPath: '/downloads', label: 'İndirilen Dosyalar' },
+    ],
+    suggestedDependencies: [{ moduleId: 'prowlarr', reason: 'Usenet indeksleyicileriyle otomatik entegrasyon için' }],
+    notes: ['Radarr ve Sonarr ile tam entegre çalışır; indirmeleri otomatik klasörler ve ayıklar.'],
+    icon: 'Download',
+    color: '#EAB308',
+    resources: { ramMB: 512, cpuCores: 1, diskGB: 10 },
+  },
+  {
+    id: 'readarr',
+    name: 'Readarr',
+    description: 'Kitap ve sesli kitap koleksiyonları için otomatik arama, indirme ve düzenleme yöneticisi (*Arr ailesi).',
+    category: 'media',
+    dockerImage: 'lscr.io/linuxserver/readarr',
+    defaultTag: 'develop',
+    ports: [{ internal: 8787, default: 8787, label: 'Web UI', protocol: 'tcp' }],
+    environment: [
+      { key: 'PUID', defaultValue: '1000', description: 'Kullanıcı ID', required: false },
+      { key: 'PGID', defaultValue: '1000', description: 'Grup ID', required: false },
+      { key: 'TZ', defaultValue: 'Europe/Istanbul', description: 'Zaman dilimi', required: false },
+    ],
+    volumes: [
+      { hostPath: './readarr/config', containerPath: '/config', label: 'Readarr Config' },
+      { hostPath: './readarr/books', containerPath: '/books', label: 'Kitap Kütüphanesi' },
+    ],
+    suggestedDependencies: [{ moduleId: 'audiobookshelf', reason: 'İndirilen sesli kitapları dinlemek için' }],
+    notes: ['EPUB, PDF ve sesli kitapları otomatik olarak tarar, indeksler ve kütüphanenize yerleştirir.'],
+    icon: 'BookOpen',
+    color: '#F97316',
+    resources: { ramMB: 384, cpuCores: 0.5, diskGB: 5 },
+  },
+  {
+    id: 'komga',
+    name: 'Komga',
+    description: 'Çizgi roman (Comic), Manga, BD ve dergi koleksiyonları için modern web okuyuculu açık kaynak medya sunucusu.',
+    category: 'media',
+    dockerImage: 'gotson/komga',
+    defaultTag: 'latest',
+    ports: [{ internal: 25600, default: 25600, label: 'Web UI', protocol: 'tcp' }],
+    environment: [],
+    volumes: [
+      { hostPath: './komga/config', containerPath: '/config', label: 'Komga Config' },
+      { hostPath: './komga/data', containerPath: '/data', label: 'Çizgi Roman Kütüphanesi' },
+    ],
+    suggestedDependencies: [],
+    notes: ['CBZ, CBR, PDF ve EPUB formatlarını doğrudan web tarayıcısından ve tablet uygulamalarından okutur.'],
+    icon: 'Palette',
+    color: '#EC4899',
+    resources: { ramMB: 512, cpuCores: 1, diskGB: 10 },
+  },
+  {
+    id: 'slskd',
+    name: 'slskd',
+    description: 'Nadir müzik ve kayıpsız (FLAC) parça keşfi için modern web arayüzlü Soulseek P2P dosya paylaşım istemcisi.',
+    category: 'media',
+    dockerImage: 'slskd/slskd',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 5030, default: 5030, label: 'Web UI', protocol: 'tcp' },
+      { internal: 50300, default: 50300, label: 'Gelen Bağlantılar (TCP)', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'SLSKD_REMOTE_CONFIGURATION', defaultValue: 'true', description: 'Web arayüzünden ayar yapma izni', required: false },
+    ],
+    volumes: [
+      { hostPath: './slskd/data', containerPath: '/app', label: 'slskd Yapılandırma ve Müzikler' },
+    ],
+    suggestedDependencies: [{ moduleId: 'navidrome', reason: 'İndirilen albümleri anında dinlemek için' }],
+    notes: ['Navidrome veya Jellyfin müzik klasörüne doğrudan indirme yapabilir.'],
+    icon: 'Headphones',
+    color: '#8B5CF6',
+    resources: { ramMB: 256, cpuCores: 0.5, diskGB: 5 },
+  },
+
+  // ── SYSTEM HEALTH & MONITORING ──────────────────────────────
+  {
+    id: 'scrutiny',
+    name: 'Scrutiny',
+    description: 'Sabit disk ve NVMe SSD sürücülerinizin S.M.A.R.T sağlık durumunu izleyen, hata tahmin radarı.',
+    category: 'security',
+    dockerImage: 'ghcr.io/analogj/scrutiny',
+    defaultTag: 'master-omnibus',
+    ports: [{ internal: 8080, default: 8088, label: 'Web Dashboard', protocol: 'tcp' }],
+    environment: [],
+    volumes: [
+      { hostPath: '/run/udev', containerPath: '/run/udev:ro', label: 'Cihaz Bilgisi (Salt Okunur)' },
+      { hostPath: './scrutiny/config', containerPath: '/opt/scrutiny/config', label: 'Yapılandırma' },
+      { hostPath: './scrutiny/influxdb', containerPath: '/opt/scrutiny/influxdb', label: 'Metrik Veritabanı' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Disklerin yıpranma oranını ve sıcaklığını anlık izler, bozulmadan önce alarm üretir.'],
+    icon: 'HardDrive',
+    color: '#EF4444',
+    resources: { ramMB: 256, cpuCores: 0.5, diskGB: 2 },
+  },
+  {
+    id: 'gatus',
+    name: 'Gatus',
+    description: 'Sıfır karmaşıklıkla HTTP, ICMP, TCP ve DNS servislerinin erişilebilirliğini izleyen otomatik durum sayfası motoru.',
+    category: 'network',
+    dockerImage: 'twinproduction/gatus',
+    defaultTag: 'latest',
+    ports: [{ internal: 8080, default: 8089, label: 'Durum Sayfası', protocol: 'tcp' }],
+    environment: [],
+    volumes: [
+      { hostPath: './gatus/config', containerPath: '/config', label: 'Gatus Yapılandırması' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Hafif YAML dosyasıyla tüm servislerin 7/24 kesintisizliğini şık bir durum panosunda sunar.'],
+    icon: 'Activity',
+    color: '#10B981',
+    resources: { ramMB: 128, cpuCores: 0.2, diskGB: 1 },
+  },
+
+  // ── DEDICATED GAME SERVERS ──────────────────────────────────
+  {
+    id: 'factorio-server',
+    name: 'Factorio Server',
+    description: 'Efsanevi otomasyon oyunu Factorio için resmi headless çok oyunculu adanmış sunucu.',
+    category: 'game',
+    dockerImage: 'factoriotools/factorio',
+    defaultTag: 'stable',
+    ports: [
+      { internal: 34197, default: 34197, label: 'Oyun Sunucusu (UDP)', protocol: 'udp' },
+      { internal: 27015, default: 27015, label: 'RCON Konsol (TCP)', protocol: 'tcp' },
+    ],
+    environment: [
+      { key: 'UPDATE_MODS_ON_START', defaultValue: 'true', description: 'Başlangıçta modları güncelle', required: false },
+    ],
+    volumes: [
+      { hostPath: './factorio/saves', containerPath: '/factorio/saves', label: 'Kayıt Dosyaları' },
+      { hostPath: './factorio/mods', containerPath: '/factorio/mods', label: 'Mod Klasörü' },
+      { hostPath: './factorio/config', containerPath: '/factorio/config', label: 'Sunucu Ayarları' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Otomatik kayıt alma ve mod yükleme desteğiyle arkadaşlarınızla kesintisiz fabrika kurun.'],
+    icon: 'Gamepad2',
+    color: '#F59E0B',
+    resources: { ramMB: 1024, cpuCores: 2, diskGB: 10 },
+  },
+  {
+    id: 'enshrouded-server',
+    name: 'Enshrouded Server',
+    description: 'Popüler hayatta kalma ve aksiyon RPG oyunu Enshrouded için 16 kişilik adanmış kooperatif sunucu.',
+    category: 'game',
+    dockerImage: 'mornedhels/enshrouded-server',
+    defaultTag: 'latest',
+    ports: [
+      { internal: 15636, default: 15636, label: 'Oyun Trafiği (UDP)', protocol: 'udp' },
+      { internal: 15637, default: 15637, label: 'Sorgu Portu (UDP)', protocol: 'udp' },
+    ],
+    environment: [
+      { key: 'SERVER_NAME', defaultValue: 'XIVIZLEY Enshrouded', description: 'Sunucu adı', required: true },
+      { key: 'SERVER_PASSWORD', defaultValue: 'change_me', description: 'Oyun katılım parolası', required: false, secret: true },
+    ],
+    volumes: [
+      { hostPath: './enshrouded/savegame', containerPath: '/opt/enshrouded/savegame', label: 'Dünya Kayıtları' },
+      { hostPath: './enshrouded/logs', containerPath: '/opt/enshrouded/logs', label: 'Sunucu Logları' },
+    ],
+    suggestedDependencies: [],
+    notes: ['Wine/Proton tabanlı konteynerdir; akıcı oyun için en az 4 vCPU ve 4GB RAM önerilir.'],
+    icon: 'Gamepad2',
+    color: '#6366F1',
+    resources: { ramMB: 4096, cpuCores: 4, diskGB: 25 },
+  },
 ];
 
 export interface MinecraftPlugin {
@@ -3851,6 +4211,20 @@ export const PORT_ALTERNATIVES: Record<number, number[]> = {
   3009: [3015, 3016],
   3010: [3017, 3018],
   8000: [8001, 8002],
+  // 2026 — 150 modül genişlemesi
+  3080: [3081, 3082],
+  6333: [6335, 6336],
+  5230: [5231, 5232],
+  8384: [8385, 8386],
+  9091: [9092, 9093],
+  8086: [8087, 8094],
+  8087: [8095, 8096],
+  8787: [8788, 8789],
+  25600: [25601, 25602],
+  34197: [34198, 34199],
+  15636: [15638, 15639],
+  5030: [5031, 5032],
+  8092: [8093, 8099],
 };
 
 
