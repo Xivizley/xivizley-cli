@@ -12,6 +12,7 @@ import { MODULE_CATALOG } from './data/modules.js';
 import { runVdsDoctor } from './ecosystem/doctor.js';
 import { runDisasterRecoveryGenerator } from './ecosystem/backup.js';
 import { runBlueprintSync } from './ecosystem/blueprint.js';
+import { CLI_VERSION } from './version.js';
 
 export async function launchInteractiveTUI(): Promise<void> {
   printBanner();
@@ -90,7 +91,7 @@ export function createCli(): Command {
   program
     .name('xivizley')
     .description('XIVIZLEY Industrial Server & Cloud Ecosystem Interactive CLI Engine')
-    .version('1.0.0', '-v, --version', 'XIVIZLEY sürümünü gösterir');
+    .version(CLI_VERSION, '-v, --version', 'XIVIZLEY sürümünü gösterir');
 
   program
     .command('suite')

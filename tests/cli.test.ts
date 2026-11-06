@@ -14,6 +14,11 @@ import { buildComposeFromModules, resolvePortConflicts } from '../dist/utils/com
 import { buildSuiteCompose, isIpAddress } from '../dist/ecosystem/suite.js';
 import { getSystemHealth, isPortInUse } from '../dist/utils/system.js';
 import fs from 'node:fs';
+
+// Sürüm beklentisi package.json'dan okunur; elle yazılan sürüm testi her bump'ta kırar.
+const PKG_VERSION: string = (
+  JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }
+).version;
 import net from 'node:net';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -200,7 +205,7 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
 
   test('CLI Binary Komutları (--version & --help) ve Sembolik Bağlantı Testi', () => {
     const versionOutput = execSync(`node "${cliBin}" --version`).toString().trim();
-    assert.strictEqual(versionOutput, '1.0.0', 'Sürüm 1.0.0 olmalı');
+    assert.strictEqual(versionOutput, PKG_VERSION, `Sürüm package.json ile aynı olmalı (${PKG_VERSION})`);
 
     const helpOutput = execSync(`node "${cliBin}" --help`).toString();
     assert(helpOutput.includes('XIVIZLEY Industrial Server'), 'Yardım metni başlık içermeli');
@@ -216,7 +221,7 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     try {
       fs.symlinkSync(cliBin, symlinkPath);
       const symlinkOutput = execSync(`"${symlinkPath}" --version`).toString().trim();
-      assert.strictEqual(symlinkOutput, '1.0.0', 'Sembolik bağlantı üzerinden çağrıldığında 1.0.0 döndürmeli');
+      assert.strictEqual(symlinkOutput, PKG_VERSION, `Sembolik bağlantı üzerinden çağrıldığında ${PKG_VERSION} döndürmeli`);
     } finally {
       if (fs.existsSync(symlinkPath)) fs.unlinkSync(symlinkPath);
     }
