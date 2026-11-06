@@ -266,7 +266,7 @@ echo "✅ Tüm servisler başarıyla ayağa kalktı!"
 }
 
 export async function runStandaloneAppStore(): Promise<void> {
-  p.intro(formatBadge('📦 XIVIZLEY TEKİL UYGULAMA MAĞAZASI (134 Docker Modülü)', 'violet'));
+  p.intro(formatBadge(`📦 XIVIZLEY TEKİL UYGULAMA MAĞAZASI (${getAllModules().length} Docker Modülü)`, 'violet'));
 
   const mode = await p.select({
     message: 'Uygulamaları nasıl bulmak istersiniz?',
@@ -274,7 +274,7 @@ export async function runStandaloneAppStore(): Promise<void> {
       { value: 'search', label: '🔍 Hızlı Arama (İsim, port veya anahtar kelime ile)', hint: 'Örn: jellyfin, wireguard' },
       { value: 'category', label: '📁 Kategoriye Göre Göz At (Medya, Güvenlik, Bulut, Oyun...)', hint: 'Kategorize liste' },
       { value: 'multi', label: '☑️ Çoklu Seçim Modu (Birden fazla app seçip tek compose üret)', hint: 'Composer modu' },
-      { value: 'all', label: '📋 Tüm 130 Uygulamayı Alfabetik Listele', hint: 'Tam katalog' },
+      { value: 'all', label: `📋 Tüm ${getAllModules().length} Uygulamayı Alfabetik Listele`, hint: 'Tam katalog' },
     ],
   });
 

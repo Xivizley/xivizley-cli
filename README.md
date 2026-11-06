@@ -59,7 +59,7 @@ npx xivizley sync <blueprint-id>
    Birden fazla uygulamayı aynı anda seçtiğinizde port çakışmalarını otomatik tespit eder ve alternatif portlara yönlendirerek tek bir `docker-compose.yml` içinde birleştirir.
 
 4. **🌟 33 Endüstriyel Şablon (Full Stacks)**:
-   DIN 40719 standartlarında hazırlanmış Yerel LLM, Medya Merkezi, Güvenlik, Oyun Sunucuları ve SaaS altyapıları (yeni: Ultimate *Arr Medya Otomasyonu ve Hafif Homelab Gözlem).
+   DIN EN 61082-1 standartlarında hazırlanmış Yerel LLM, Medya Merkezi, Güvenlik, Oyun Sunucuları ve SaaS altyapıları (yeni: Ultimate *Arr Medya Otomasyonu ve Hafif Homelab Gözlem).
 
 5. **🛡️ VDS Doktoru & Port Çakışma Radarı**:
    Sunucu soketlerini canlı tarayarak hangi portların açık, hangilerinin kullanımda olduğunu raporlar. Docker Engine ve RAM/CPU durumunu ölçer.

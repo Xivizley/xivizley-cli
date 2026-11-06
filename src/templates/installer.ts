@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { getAllTemplates, getTemplate, getTemplatesByCategory, searchTemplates } from './catalog.js';
-import { TEMPLATE_CATEGORIES, type StackTemplate, type TemplateCategory } from '../data/templates.js';
+import { TEMPLATE_CATEGORIES, STACK_TEMPLATES, type StackTemplate, type TemplateCategory } from '../data/templates.js';
 import { saveStackFiles, executeDockerCompose } from '../utils/system.js';
 import { formatBadge } from '../ui/banner.js';
 
@@ -40,7 +40,7 @@ export async function deployTemplate(template: StackTemplate, options: DeployTem
   const targetDir = path.resolve(process.cwd(), targetDirInput);
 
   const s = p.spinner();
-  s.start('Endüstriyel DIN 40719 şablon dosyaları hazırlanıyor...');
+  s.start('Endüstriyel DIN EN 61082-1 şablon dosyaları hazırlanıyor...');
 
   const composeContent = template.composeSnippet.trim();
   const envContent = `# XIVIZLEY Industrial Stack - ${template.title}
@@ -60,7 +60,7 @@ echo "✅ ${template.title} başarıyla ayağa kalktı!"
   const readmeContent = `# ${template.title}
 ${template.subtitle}
 
-DIN 40719 Endüstriyel Standart Mimari
+DIN EN 61082-1 Endüstriyel Standart Mimari
 
 ## Servisler:
 ${template.moduleIds.map((m) => `- ${m}`).join('\n')}
@@ -86,7 +86,7 @@ docker compose up -d
 
   p.note(
     `📂 Dizin: ${pc.cyan(targetDir)}\n` +
-    `📄 docker-compose.yml (DIN 40719 Uyumlu)\n` +
+    `📄 docker-compose.yml (DIN EN 61082-1 Uyumlu)\n` +
     `🚀 Başlatmak için: cd ${targetDirInput} && docker compose up -d`,
     `${template.title} Hazır`
   );
@@ -122,7 +122,7 @@ docker compose up -d
 }
 
 export async function runTemplateCatalog(): Promise<void> {
-  p.intro(formatBadge('🌟 33 ENDÜSTRİYEL ŞABLON KATALOĞU (Full Stacks)', 'violet'));
+  p.intro(formatBadge(`🌟 ${STACK_TEMPLATES.length} ENDÜSTRİYEL ŞABLON KATALOĞU (Full Stacks)`, 'violet'));
 
   const catOptions = TEMPLATE_CATEGORIES.map((c) => ({
     value: c.id,
@@ -165,6 +165,6 @@ export async function runDirectTemplateInstall(templateId: string, options: Depl
     await deployTemplate(t, options);
   } else {
     console.log(pc.red(`❌ Hata: "${templateId}" adında bir şablon bulunamadı.`));
-    console.log(pc.cyan('Tüm 33 şablonu listelemek için: xivizley\n'));
+    console.log(pc.cyan(`Tüm ${STACK_TEMPLATES.length} şablonu listelemek için: xivizley\n`));
   }
 }
