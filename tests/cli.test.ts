@@ -56,11 +56,19 @@ describe('XIVIZLEY Interactive CLI Engine Tests', () => {
     }
   });
 
-  test('35 Endüstriyel Şablon Kataloğu Doğrulaması', () => {
-    assert.strictEqual(STACK_TEMPLATES.length, 35, 'Tam olarak 35 endüstriyel şablon bulunmalı');
+  test('38 Endüstriyel Şablon Kataloğu Doğrulaması', () => {
+    assert.strictEqual(STACK_TEMPLATES.length, 38, 'Tam olarak 38 endüstriyel şablon bulunmalı');
     
     // Verify the new 2026 templates are present
-    const newTemplateIds = ['ultimate-arr-media', 'lightweight-homelab-ops', 'ai-rag-vector-stack', 'homelab-silent-sentinel'];
+    const newTemplateIds = [
+      'ultimate-arr-media',
+      'lightweight-homelab-ops',
+      'ai-rag-vector-stack',
+      'homelab-silent-sentinel',
+      'rust-dedicated-arena',
+      'valheim-viking-coop',
+      'autonomous-ai-agent-hub',
+    ];
     for (const tid of newTemplateIds) {
       assert(STACK_TEMPLATES.some(t => t.id === tid), `Yeni şablon ${tid} katalogda bulunmalı`);
     }

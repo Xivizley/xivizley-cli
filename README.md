@@ -11,7 +11,7 @@
   >> Kurucu & Mimar: Alperen
 ```
 
-Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **35 Komple Şablonu** hem de kütüphanedeki **150 Docker Modülünü (145+ Bağımsız Uygulama)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
+Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **38 Komple Şablonu** hem de kütüphanedeki **150 Docker Modülünü (145+ Bağımsız Uygulama)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
 
 ---
 
@@ -32,7 +32,7 @@ npx xivizley install prowlarr
 # 150 Docker Modülü Tekil Uygulama Mağazasını Açma
 npx xivizley apps
 
-# 35 Endüstriyel Şablon Kataloğunu İnceleme veya Kurma
+# 38 Endüstriyel Şablon Kataloğunu İnceleme veya Kurma
 npx xivizley templates
 
 # Pre-flight Port Çakışma Radarı ve Sunucu Sağlık Taraması
@@ -58,8 +58,8 @@ npx xivizley sync <blueprint-id>
 3. **☑️ Çoklu Seçim Bestecisi (Multi-Select Composer)**:
    Birden fazla uygulamayı aynı anda seçtiğinizde port çakışmalarını otomatik tespit eder ve alternatif portlara yönlendirerek tek bir `docker-compose.yml` içinde birleştirir.
 
-4. **🌟 35 Endüstriyel Şablon (Full Stacks)**:
-   DIN EN 61082-1 standartlarında hazırlanmış Yerel LLM, Medya Merkezi, Güvenlik, Oyun Sunucuları ve SaaS altyapıları (yeni: AI RAG Vektör Paketi ve Homelab Sessiz Nöbetçi).
+4. **🌟 38 Endüstriyel Şablon (Full Stacks)**:
+   DIN EN 61082-1 standartlarında hazırlanmış Yerel LLM, Medya Merkezi, Güvenlik, Oyun Sunucuları ve SaaS altyapıları (yeni: AI RAG Vektör Paketi, Homelab Sessiz Nöbetçi, Rust Dedicated, Valheim Co-op ve Otonom AI Ajanı).
 
 5. **🛡️ VDS Doktoru & Port Çakışma Radarı**:
    Sunucu soketlerini canlı tarayarak hangi portların açık, hangilerinin kullanımda olduğunu raporlar. Docker Engine ve RAM/CPU durumunu ölçer.
