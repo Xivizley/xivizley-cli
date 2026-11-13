@@ -7,9 +7,11 @@
    ██╔██╗ ██║╚██╗ ██╔╝██║ ███╔╝  ██║     ██╔══╝    ╚██╔╝  
   ██╔╝ ██╗██║ ╚████╔╝ ██║███████╗███████╗███████╗   ██║   
   ╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═╝╚══════╝╚══════╝╚══════╝   ╚═╝   
-  >> XIVIZLEY Industrial Engine v1.0.0
+  >> XIVIZLEY Industrial Engine v1.0.3
   >> Kurucu & Mimar: Alperen
 ```
+
+> Banner'daki sürüm numarası `package.json`'dan okunur; `npx xivizley --version` her zaman yayındaki sürümü verir.
 
 Node.js ve NPM üzerinden tek komutla çalışan, hem **XIVIZLEY Ekosistemi**'ni hem **38 Komple Şablonu** hem de kütüphanedeki **150 Docker Modülünü (145+ Bağımsız Uygulama)** teker teker veya çoklu seçimle kurabilen interaktif terminal arayüzü (TUI).
 
